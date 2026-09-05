@@ -10,6 +10,8 @@
 | LLM access | **Local Copilot API server on `localhost:3000`**, assumed OpenAI-compatible chat-completions with tool calling | `packages/assistant` talks to a `LlmProvider` interface; first implementation is `OpenAiCompatibleProvider` (base URL configurable), second is `AnthropicProvider`. Health check drives the UI fallback |
 | Persistence | **`StorageAdapter` interface with IndexedDB default**; memory adapter for tests; REST adapter later | Config document, patch log and profiles all go through one adapter |
 | Design system | **Extract into `packages/design-system` and `packages/ui`**, trimmed to one CSS-variable namespace and one shadcn tier | Copy from stern-bak: tokens, themes, `applyTheme`, AG Grid Quartz adapter + density, cell renderers, 113 icons, 52 shadcn components. Drop `--st/--ds/--bn/--fi/--p/--ck` aliases and the second shadcn copy |
+| Editing components | **Host-agnostic editor library (`packages/editors`) designed first**, one registry used by both the customizer forms and the assistant's generative UI | See [ui-components-plan.md](./ui-components-plan.md): every editor is a controlled component over a schema fragment with `inline`/`popover`/`panel` modes, resolved through an `x-editor` hint |
+| Assistant framework | **assistant-ui** for the chat host + **Vercel AI SDK core** (`@ai-sdk/openai-compatible`) as the model layer + **our own** propose/validate/apply loop. Not CopilotKit for now; the editor contract keeps that swap bounded | Rationale and comparison in [ui-components-plan.md §4](./ui-components-plan.md) |
 
 Open item to confirm when the first call is made: the exact request shape of the local Copilot server (chat-completions path, streaming, tool-call format). The provider adapter isolates this.
 
@@ -66,8 +68,9 @@ smartgrid/
     expressions/           AdaptableQL-compatible language: tokenizer, parser, evaluator, functions, predicates
     engine/                Module contract, GridPlatform, pipeline, RowChangeBus, validator, runtime behaviours
     store/                 StorageAdapter, IndexedDB + memory adapters, patch log, profiles, migrations
-    assistant/             LlmProvider interface, OpenAI-compatible + Anthropic providers, tool set, agent loop
-    forms/                 Schema-driven form renderer + bespoke controls (expression, colour, column picker, rule list)
+    editors/               Host-agnostic editing components + EditorRegistry (colour, style, format, expression, predicate, rule, scope, column, icon, schedule …), PatchDiffCard, PreviewCell
+    assistant/             Model layer (AI SDK core + OpenAI-compatible provider), tool set, agent loop, assistant-ui tool UIs mounting editors
+    forms/                 Schema-driven form renderer that resolves editors from the registry (fallback customizer)
     design-system/         Extracted tokens, themes, applyTheme, AG Grid adapter, cell renderers, icons
     ui/                    shadcn primitives (one copy) + grid chrome components
     react/                 <SmartGrid>, <AssistantPane>, hooks (useSmartGrid, useConfig, useAssistant)
@@ -143,11 +146,17 @@ Each milestone ends with a demo in `apps/playground` and green CI.
 ### M0 — Foundations (week 1–2)
 - Monorepo scaffold, tooling, CI, AG Grid 35 + React 19 pinned.
 - Extract design system + ui from stern-bak; one token namespace; dark/light parity check.
-- `packages/schema`: cross-cutting primitives + `layout` and `formatting` modules in Zod with JSON Schema export.
+- `packages/schema`: cross-cutting primitives + `layout` and `formatting` modules in Zod with JSON Schema export and `x-editor` hints.
 - `packages/store`: `StorageAdapter`, IndexedDB + memory, profile CRUD, patch log.
 - **Demo:** blotter renders from a persisted config document; reload restores it.
 
-### M1 — Expression language (week 2–4)
+### M0.5 — Editors (week 2–3)
+- `packages/editors`: registry + atoms (ColorPicker, BorderEditor, FontStyleEditor, AlignmentPicker, StyleEditor, DisplayFormatEditor, ColumnPicker, ScopePicker, RowScopePicker, PredicateEditor, RuleEditor, IconPicker, ImagePicker, ScheduleEditor, KeyBindingEditor, DurationField) + PatchDiffCard + PreviewCell + ObjectList.
+- `packages/forms`: JSON-Schema-driven renderer resolving editors from the registry; generated FormatColumn and Layout forms.
+- Editor gallery page in the playground showing every editor in `inline`, `popover` and `panel` modes, dark and light.
+- **Demo:** configure a format column through the generated form; the same editors appear inside a mock PatchDiffCard.
+
+### M1 — Expression language (week 3–4)
 - `packages/expressions`: AdaptableQL grammar, scalar + boolean functions (full catalogue), predicates (all 45), positioned diagnostics, AST, compile-to-closure, parse cache.
 - Aggregation tier with `GROUP_BY`/`WHERE`/`WEIGHT`; relative-change tier; observable tier on a time-window engine.
 - Conformance suite: every example in the AdapTable docs parses and evaluates.
@@ -159,12 +168,12 @@ Each milestone ends with a demo in `apps/playground` and green CI.
 - **Demo:** the config document drives every visual on the grid; conditional styles scoped by data type; badges with predicate rules.
 
 ### M3 — Assistant (week 6–8)
-- `packages/assistant`: provider interface, OpenAI-compatible provider against the local Copilot server, tool set, agent loop, self-correction, patch log, health check.
-- `packages/react`: `<AssistantPane>` with streaming, diff cards, approve/undo.
+- `packages/assistant`: AI SDK core + `createOpenAICompatible({ baseURL: 'http://localhost:3000/v1' })` against the local Copilot server, tool set (incl. `request_input` for pickers), agent loop with validator-driven self-correction, patch log, health check.
+- `packages/react`: `<AssistantPane>` on assistant-ui (`LocalRuntime` adapter), tool UIs that mount PatchDiffCard and pickers from the editor registry, approve/undo.
 - **Demo:** "group by desk then book, pin notional right, sum it, flash PnL red when it drops more than 2%" produces and applies a valid multi-module patch; reload restores it.
 
-### M4 — Fallback UI (week 8–9)
-- `packages/forms`: schema-driven renderer from JSON Schema + UI hints; bespoke controls: expression, colour, column picker, scope picker, rule list, schedule.
+### M4 — Fallback UI completion (week 8–9)
+- Generated forms for every remaining module; composite editors where generated layout needs care (StyledColumnEditor, AlertEditor, LayoutEditor).
 - Every module editable without the LLM; round-trip test: assistant patch → form → identical document.
 - **Demo:** kill the LLM server; configure the same blotter through forms.
 
@@ -197,5 +206,6 @@ Later: REST adapter + gateway, team sharing, FDC3 intents, interop plugins, serv
 
 1. Scaffold the monorepo (M0 tooling) and push.
 2. Extract design system + ui packages from stern-bak.
-3. Write `packages/schema` primitives + `layout` + `formatting` schemas with tests.
-4. Probe the local Copilot server: confirm endpoint path, streaming, and tool-call format, and record it in `packages/assistant/README.md`.
+3. Write `packages/schema` primitives + `layout` + `formatting` schemas with `x-editor` hints and tests.
+4. Build `packages/editors` atoms + registry + gallery page (M0.5).
+5. Probe the local Copilot server: confirm endpoint path, streaming, and tool-call format, and record it in `packages/assistant/README.md`.
