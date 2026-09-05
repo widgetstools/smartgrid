@@ -104,7 +104,14 @@ export const BLOTTER_COLUMN_DEFS: ColDef<Trade>[] = [
   { field: 'book', headerName: 'Book', cellDataType: 'text', enableRowGroup: true },
   { field: 'trader', headerName: 'Trader', cellDataType: 'text', enableRowGroup: true },
   { field: 'instrument', headerName: 'Instrument', cellDataType: 'text', width: 170 },
-  { field: 'ccy', headerName: 'Ccy', cellDataType: 'text', width: 80, enableRowGroup: true, enablePivot: true },
+  {
+    field: 'ccy',
+    headerName: 'Ccy',
+    cellDataType: 'text',
+    width: 80,
+    enableRowGroup: true,
+    enablePivot: true,
+  },
   { field: 'side', headerName: 'Side', cellDataType: 'text', width: 80, enablePivot: true },
   { field: 'notional', headerName: 'Notional', cellDataType: 'number', enableValue: true },
   { field: 'price', headerName: 'Price', cellDataType: 'number', enableValue: true, editable: true },
@@ -122,7 +129,7 @@ export const BLOTTER_COLUMN_DEFS: ColDef<Trade>[] = [
 export function describeColumns(defs: ColDef<Trade>[], sample: Trade[]): ColumnInfo[] {
   return defs.map((d) => {
     const id = (d.colId ?? d.field)!;
-    const values = sample.slice(0, 50).map((r) => (r as Record<string, unknown>)[id]);
+    const values = sample.slice(0, 50).map((r) => (r as unknown as Record<string, unknown>)[id]);
     return {
       id,
       field: d.field,
@@ -130,7 +137,7 @@ export function describeColumns(defs: ColDef<Trade>[], sample: Trade[]): ColumnI
       dataType: (typeof d.cellDataType === 'string' ? d.cellDataType : 'text') as ColumnInfo['dataType'],
       columnTypes: Array.isArray(d.type) ? d.type : d.type ? [d.type] : [],
       sampleValues: [...new Set(values)].slice(0, 8),
-      distinctCount: new Set(sample.map((r) => (r as Record<string, unknown>)[id])).size,
+      distinctCount: new Set(sample.map((r) => (r as unknown as Record<string, unknown>)[id])).size,
       editable: d.editable === true,
       isPrimaryKey: id === 'tradeId',
       isSpecial: false,

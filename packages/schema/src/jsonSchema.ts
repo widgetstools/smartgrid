@@ -36,14 +36,18 @@ export function allModuleJsonSchemas(): Record<ModuleId, JsonSchema> {
  * Handy for the forms renderer and for tests asserting that every editable
  * fragment has a hint.
  */
-export function collectEditorHints(schema: JsonSchema, pointer = ''): Array<{ pointer: string; editor: EditorHint }> {
+export function collectEditorHints(
+  schema: JsonSchema,
+  pointer = '',
+): Array<{ pointer: string; editor: EditorHint }> {
   const out: Array<{ pointer: string; editor: EditorHint }> = [];
   const visit = (node: unknown, ptr: string) => {
     if (!node || typeof node !== 'object') return;
     const n = node as Record<string, unknown>;
     if (typeof n['x-editor'] === 'string') out.push({ pointer: ptr, editor: n['x-editor'] as EditorHint });
     if (n['properties'] && typeof n['properties'] === 'object') {
-      for (const [k, v] of Object.entries(n['properties'] as Record<string, unknown>)) visit(v, `${ptr}/${k}`);
+      for (const [k, v] of Object.entries(n['properties'] as Record<string, unknown>))
+        visit(v, `${ptr}/${k}`);
     }
     if (n['items']) visit(n['items'], `${ptr}/items`);
     for (const key of ['oneOf', 'anyOf', 'allOf'] as const) {
@@ -54,7 +58,8 @@ export function collectEditorHints(schema: JsonSchema, pointer = ''): Array<{ po
       visit(n['additionalProperties'], `${ptr}/additionalProperties`);
     }
     if (n['$defs'] && typeof n['$defs'] === 'object') {
-      for (const [k, v] of Object.entries(n['$defs'] as Record<string, unknown>)) visit(v, `${ptr}/$defs/${k}`);
+      for (const [k, v] of Object.entries(n['$defs'] as Record<string, unknown>))
+        visit(v, `${ptr}/$defs/${k}`);
     }
   };
   visit(schema, pointer);

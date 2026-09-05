@@ -1,0 +1,109 @@
+/* ============================================================================
+   SmartGrid design system — Tailwind CSS 4 theme (CSS-first, no config file)
+   `@theme inline` keeps the utilities pointing at the live CSS variables
+   (`bg-background` → `background-color: var(--background)`), so a theme flip
+   never needs a rebuild. Consumers that don't use Tailwind can ignore this
+   file: browsers drop the unknown `@theme` at-rule.
+
+   Replaces stern-bak's adapters/tailwind.ts preset. Animation utilities come
+   from `tw-animate-css` (imported by @smartgrid/ui/styles.css), which also
+   defines `--animate-accordion-*` and `--animate-caret-blink`.
+   ============================================================================ */
+
+@theme inline {
+  /* ── shadcn semantic colours ─────────────────────────────────────────────── */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--sg-border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* ── Trading semantics (bg-buy, text-sell-foreground, text-positive …) ──── */
+  --color-success: var(--sg-positive);
+  --color-success-foreground: var(--sg-buy-foreground);
+  --color-warning: var(--sg-warning);
+  --color-warning-foreground: var(--sg-warning-foreground);
+  --color-info: var(--sg-info);
+  --color-info-foreground: var(--sg-info-foreground);
+  --color-buy: var(--sg-buy);
+  --color-buy-foreground: var(--sg-buy-foreground);
+  --color-sell: var(--sg-sell);
+  --color-sell-foreground: var(--sg-sell-foreground);
+  --color-positive: var(--sg-positive);
+  --color-negative: var(--sg-negative);
+
+  /* ── Radius ─────────────────────────────────────────────────────────────── */
+  --radius-sm: var(--sg-radius-sm);
+  --radius-md: var(--sg-radius-md);
+  --radius-lg: var(--sg-radius-lg);
+  --radius-xl: var(--sg-radius-xl);
+
+  /* ── Fonts ──────────────────────────────────────────────────────────────── */
+  --font-sans: var(--sg-font-sans);
+  --font-mono: var(--sg-font-mono);
+
+  /* ── Type scale — density tokens, not browser rem ───────────────────────── */
+  --text-2xs: var(--sg-text-2xs);
+  --text-2xs--line-height: 1.4;
+  --text-xs: var(--sg-text-xs);
+  --text-xs--line-height: 1.4;
+  --text-sm: var(--sg-text-sm);
+  --text-sm--line-height: 1.45;
+  --text-base: var(--sg-text-base);
+  --text-base--line-height: 1.5;
+  --text-md: var(--sg-text-md);
+  --text-md--line-height: 1.5;
+  --text-lg: var(--sg-text-lg);
+  --text-lg--line-height: 1.45;
+  --text-xl: var(--sg-text-xl);
+  --text-xl--line-height: 1.35;
+  --text-2xl: var(--sg-text-2xl);
+  --text-2xl--line-height: 1.25;
+  --text-3xl: var(--sg-text-3xl);
+  --text-3xl--line-height: 1.2;
+
+  /* ── Control heights (h-control, size-control-sm, min-w-control-lg …) ───── */
+  --spacing-control: var(--sg-control-h);
+  --spacing-control-sm: var(--sg-control-h-sm);
+  --spacing-control-lg: var(--sg-control-h-lg);
+
+  /* ── Elevation (shadow-sm, shadow-card, shadow-overlay, shadow-glow) ────── */
+  --shadow-sm: var(--sg-shadow-sm);
+  --shadow-card: var(--sg-shadow-card);
+  --shadow-overlay: var(--sg-shadow-overlay);
+  --shadow-glow: var(--sg-elevation-glow);
+}
+
+/* Dark-mode variant keyed on the theme attribute, mirroring the old preset's
+   `darkMode: ['selector', '[data-theme="dark"]']`. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));

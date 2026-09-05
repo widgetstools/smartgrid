@@ -1,0 +1,15 @@
+/* ============================================================================
+   @smartgrid/ui/styles.css — Tailwind 4 entry for apps using the UI kit.
+   Import this once from the app's root stylesheet, then add an `@source` for
+   this package so Tailwind scans the component classes (see README):
+
+     @import '@smartgrid/ui/styles.css';
+     @source '../node_modules/@smartgrid/ui';
+
+   Order: Tailwind → design-system tokens/aliases/@theme/base → tw-animate-css
+   (the `animate-in`, `fade-in-0`, `slide-in-from-*`, `accordion-*` and
+   `caret-blink` utilities the shadcn components rely on).
+   ============================================================================ */
+@import 'tailwindcss';
+@import '@smartgrid/design-system/css';
+@import 'tw-animate-css';

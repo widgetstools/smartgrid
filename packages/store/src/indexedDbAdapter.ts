@@ -53,7 +53,12 @@ export class IndexedDbAdapter implements StorageAdapter {
   async listProfiles(gridId: string): Promise<ProfileMeta[]> {
     const db = await this.dbPromise;
     const all = await db.getAllFromIndex('profiles', 'byGrid', gridId);
-    return all.map((p) => ({ gridId: p.gridId, profile: p.profile, revision: p.revision, updatedAt: p.updatedAt ?? '' }));
+    return all.map((p) => ({
+      gridId: p.gridId,
+      profile: p.profile,
+      revision: p.revision,
+      updatedAt: p.updatedAt ?? '',
+    }));
   }
 
   async loadProfile(gridId: string, profile: string): Promise<GridConfig | undefined> {

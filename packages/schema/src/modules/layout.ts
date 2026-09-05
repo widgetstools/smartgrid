@@ -16,7 +16,9 @@ export const ColumnSizing = z
     maxWidth: z.number().int().min(10).optional(),
     resizable: z.boolean().default(true),
   })
-  .refine((s) => !(s.width !== undefined && s.flex !== undefined), { message: 'Use width or flex, not both' });
+  .refine((s) => !(s.width !== undefined && s.flex !== undefined), {
+    message: 'Use width or flex, not both',
+  });
 export type ColumnSizing = z.infer<typeof ColumnSizing>;
 
 export const SortOrder = z.enum(['asc', 'desc']);
@@ -54,7 +56,9 @@ export type GridFilter = z.infer<typeof GridFilter>;
 export const RowGroupDisplayType = z.enum(['single', 'multi', 'groupRows']);
 
 export const RowGroupExpansion = z.object({
-  defaultBehavior: z.enum(['alwaysExpanded', 'alwaysCollapsed', 'expanded', 'collapsed']).default('collapsed'),
+  defaultBehavior: z
+    .enum(['alwaysExpanded', 'alwaysCollapsed', 'expanded', 'collapsed'])
+    .default('collapsed'),
   /** Group keys (one array per level) that invert the default. */
   exceptions: z.array(z.array(z.string())).default([]),
 });
@@ -107,7 +111,9 @@ export const RowSelection = z.object({
   mode: z.enum(['none', 'singleRow', 'multiRow']).default('none'),
   checkboxes: z.boolean().default(true),
   headerCheckbox: z.boolean().default(true),
-  enableClickSelection: z.union([z.boolean(), z.enum(['enableSelection', 'enableDeselection'])]).default(false),
+  enableClickSelection: z
+    .union([z.boolean(), z.enum(['enableSelection', 'enableDeselection'])])
+    .default(false),
   checkboxInGroupColumn: z.boolean().default(false),
   groupSelectMode: z.enum(['self', 'descendants', 'filteredDescendants']).default('self'),
   selectAllMode: z.enum(['all', 'filtered', 'currentPage']).default('all'),
@@ -158,7 +164,12 @@ export const PivotTotalPosition = z.enum(['none', 'before', 'after']);
 export const PivotAggregation = z.object({
   columnId: z.string().min(1),
   aggFunc: AggregationFunction,
-  total: z.union([PivotTotalPosition, z.array(z.object({ pivotColumnId: z.string(), position: PivotTotalPosition }))]).optional(),
+  total: z
+    .union([
+      PivotTotalPosition,
+      z.array(z.object({ pivotColumnId: z.string(), position: PivotTotalPosition })),
+    ])
+    .optional(),
 });
 
 export const PivotLayout = LayoutBase.extend({

@@ -23,7 +23,8 @@ export interface CustomPredicateDef {
   handler: PredicateHandler;
 }
 
-const isBlank = (v: unknown) => v === null || v === undefined || v === '' || (Array.isArray(v) && v.length === 0);
+const isBlank = (v: unknown) =>
+  v === null || v === undefined || v === '' || (Array.isArray(v) && v.length === 0);
 
 function toNumber(v: unknown): number | undefined {
   if (typeof v === 'number') return Number.isFinite(v) ? v : undefined;
@@ -51,7 +52,8 @@ function toText(v: unknown, ctx: PredicateContext): string {
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const sameDay = (a: Date, b: Date) => startOfDay(a).getTime() === startOfDay(b).getTime();
 const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
-const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const isoDay = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 function isWorkDay(d: Date, ctx: PredicateContext): boolean {
   const dow = d.getDay();
@@ -95,7 +97,9 @@ const num = (handler: (n: number, inputs: number[]) => boolean): PredicateHandle
   };
 };
 
-const date = (handler: (d: Date, inputs: Date[], ctx: PredicateContext, now: Date) => boolean): PredicateHandler => {
+const date = (
+  handler: (d: Date, inputs: Date[], ctx: PredicateContext, now: Date) => boolean,
+): PredicateHandler => {
   return (value, inputs, ctx) => {
     const d = toDate(value);
     if (!d) return false;
@@ -111,7 +115,8 @@ export const SYSTEM_PREDICATES: Record<PredicateId, PredicateHandler> = {
   NonBlanks: (v) => !isBlank(v),
   In: (v, inputs, ctx) => inList(v, inputs, ctx),
   NotIn: (v, inputs, ctx) => !inList(v, inputs, ctx),
-  AnyChange: (v, _i, ctx) => ctx.previousValue !== undefined && normalise(v, ctx) !== normalise(ctx.previousValue, ctx),
+  AnyChange: (v, _i, ctx) =>
+    ctx.previousValue !== undefined && normalise(v, ctx) !== normalise(ctx.previousValue, ctx),
 
   Equals: num((n, [a]) => n === a),
   NotEquals: num((n, [a]) => n !== a),
@@ -140,7 +145,9 @@ export const SYSTEM_PREDICATES: Record<PredicateId, PredicateHandler> = {
   EndsWith: (v, [a], ctx) => toText(v, ctx).endsWith(toText(a, ctx)),
   Regex: (v, [a], ctx) => {
     try {
-      return new RegExp(String(a), ctx.caseSensitive ? '' : 'i').test(v === null || v === undefined ? '' : String(v));
+      return new RegExp(String(a), ctx.caseSensitive ? '' : 'i').test(
+        v === null || v === undefined ? '' : String(v),
+      );
     } catch {
       return false;
     }
@@ -154,10 +161,13 @@ export const SYSTEM_PREDICATES: Record<PredicateId, PredicateHandler> = {
     const end = addDays(start, 7);
     return d >= start && d < end;
   }),
-  ThisMonth: date((d, _i, _c, now) => d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()),
+  ThisMonth: date(
+    (d, _i, _c, now) => d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth(),
+  ),
   ThisQuarter: date(
     (d, _i, _c, now) =>
-      d.getFullYear() === now.getFullYear() && Math.floor(d.getMonth() / 3) === Math.floor(now.getMonth() / 3),
+      d.getFullYear() === now.getFullYear() &&
+      Math.floor(d.getMonth() / 3) === Math.floor(now.getMonth() / 3),
   ),
   ThisYear: date((d, _i, _c, now) => d.getFullYear() === now.getFullYear()),
   InPast: date((d, _i, _c, now) => d < now),
@@ -195,7 +205,9 @@ export class PredicateRegistry {
 
   /** Evaluate one predicate against a value. Unknown ids evaluate to false. */
   evaluate(predicate: Predicate, value: unknown, ctx: PredicateContext = {}): boolean {
-    const handler = SYSTEM_PREDICATES[predicate.predicateId as PredicateId] ?? this.custom.get(predicate.predicateId)?.handler;
+    const handler =
+      SYSTEM_PREDICATES[predicate.predicateId as PredicateId] ??
+      this.custom.get(predicate.predicateId)?.handler;
     if (!handler) return false;
     return handler(value, predicate.inputs ?? [], ctx);
   }
@@ -205,7 +217,8 @@ export class PredicateRegistry {
     const arity = this.arity(predicate.predicateId);
     if (arity === undefined) return `Unknown predicate "${predicate.predicateId}"`;
     const n = predicate.inputs?.length ?? 0;
-    if (arity === 'list') return n === 0 ? `Predicate "${predicate.predicateId}" needs at least one value` : undefined;
+    if (arity === 'list')
+      return n === 0 ? `Predicate "${predicate.predicateId}" needs at least one value` : undefined;
     if (n !== arity) return `Predicate "${predicate.predicateId}" expects ${arity} input(s), got ${n}`;
     return undefined;
   }

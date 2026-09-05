@@ -8,13 +8,21 @@ import { RevisionConflictError, type StorageAdapter } from './types.js';
 
 function seed(gridId = 'g1'): GridConfig {
   const cfg = createGridConfig(gridId);
-  cfg.modules.layout = { v: 1, data: { currentLayoutId: 'a', layouts: [defaultTableLayout('a', 'A', ['x', 'y'])] } };
+  cfg.modules.layout = {
+    v: 1,
+    data: { currentLayoutId: 'a', layouts: [defaultTableLayout('a', 'A', ['x', 'y'])] },
+  };
   return cfg as GridConfig;
 }
 
 let n = 0;
 const makeStore = (adapter: StorageAdapter) =>
-  new ConfigStore({ adapter, persistDebounceMs: 0, idGen: () => `p${++n}`, now: () => new Date('2026-09-05T10:00:00Z') });
+  new ConfigStore({
+    adapter,
+    persistDebounceMs: 0,
+    idGen: () => `p${++n}`,
+    now: () => new Date('2026-09-05T10:00:00Z'),
+  });
 
 const adapters: Array<[string, () => StorageAdapter]> = [
   ['MemoryAdapter', () => new MemoryAdapter()],
@@ -56,7 +64,9 @@ describe.each(adapters)('ConfigStore with %s', (_name, makeAdapter) => {
     const store = makeStore(adapter);
     await store.init(seed());
     await expect(
-      store.apply([{ op: 'replace', path: '/modules/layout/data/currentLayoutId', value: 'nope' }], { origin: 'form' }),
+      store.apply([{ op: 'replace', path: '/modules/layout/data/currentLayoutId', value: 'nope' }], {
+        origin: 'form',
+      }),
     ).rejects.toThrow(/currentLayoutId/);
     expect(store.current?.revision).toBe(0);
     await store.dispose();
@@ -68,7 +78,10 @@ describe.each(adapters)('ConfigStore with %s', (_name, makeAdapter) => {
     await store.init(seed());
     await store.apply([{ op: 'replace', path: '/profile', value: 'default' }], { origin: 'api' });
     await expect(
-      store.apply([{ op: 'replace', path: '/profile', value: 'default' }], { origin: 'api', expectedRevision: 0 }),
+      store.apply([{ op: 'replace', path: '/profile', value: 'default' }], {
+        origin: 'api',
+        expectedRevision: 0,
+      }),
     ).rejects.toBeInstanceOf(RevisionConflictError);
     await store.dispose();
   });
@@ -88,7 +101,10 @@ describe.each(adapters)('ConfigStore with %s', (_name, makeAdapter) => {
     const undone = await store.undo();
     expect(undone?.revision).toBe(2);
     expect(store.current?.revision).toBe(1);
-    expect((store.current?.modules['layout']?.data as { layouts: { columnHeaders: Record<string, string> }[] }).layouts[0]?.columnHeaders).toEqual({ x: 'X!' });
+    expect(
+      (store.current?.modules['layout']?.data as { layouts: { columnHeaders: Record<string, string> }[] })
+        .layouts[0]?.columnHeaders,
+    ).toEqual({ x: 'X!' });
     expect((await adapter.listPatches('g1', 'default')).length).toBe(1);
 
     const redone = await store.redo();
@@ -98,7 +114,9 @@ describe.each(adapters)('ConfigStore with %s', (_name, makeAdapter) => {
 
     // A new apply after undo discards the redo stack and truncates the log.
     await store.undo();
-    await store.apply([{ op: 'add', path: '/modules/layout/data/layouts/0/columnHeaders/z', value: 'Z' }], { origin: 'form' });
+    await store.apply([{ op: 'add', path: '/modules/layout/data/layouts/0/columnHeaders/z', value: 'Z' }], {
+      origin: 'form',
+    });
     expect(await store.redo()).toBeUndefined();
     expect((await adapter.listPatches('g1', 'default')).map((p) => p.revision)).toEqual([1, 2]);
     await store.dispose();
@@ -108,7 +126,11 @@ describe.each(adapters)('ConfigStore with %s', (_name, makeAdapter) => {
     const adapter = makeAdapter();
     const store = makeStore(adapter);
     await store.init(seed());
-    await store.setModule('formatting', { v: 1, data: { formatColumns: [], editStateStyles: {} } }, { origin: 'api' });
+    await store.setModule(
+      'formatting',
+      { v: 1, data: { formatColumns: [], editStateStyles: {} } },
+      { origin: 'api' },
+    );
     expect(store.current?.modules['formatting']?.v).toBe(1);
     await store.dispose();
   });
@@ -129,7 +151,10 @@ describe.each(adapters)('ConfigStore with %s', (_name, makeAdapter) => {
 
 describe('MigrationRegistry', () => {
   it('runs chained migrations up to the current version and throws on gaps', () => {
-    const reg = new MigrationRegistry().register('formatting', 0, (d) => ({ ...(d as object), migrated: true }));
+    const reg = new MigrationRegistry().register('formatting', 0, (d) => ({
+      ...(d as object),
+      migrated: true,
+    }));
     const cfg = seed();
     cfg.modules['formatting'] = { v: 0, data: { formatColumns: [] } };
     const { config, migrated } = reg.migrate(cfg);
@@ -148,7 +173,10 @@ describe('MigrationRegistry', () => {
     await adapter.saveProfile(cfg);
     const store = new ConfigStore({
       adapter,
-      migrations: new MigrationRegistry().register('formatting', 0, () => ({ formatColumns: [], editStateStyles: {} })),
+      migrations: new MigrationRegistry().register('formatting', 0, () => ({
+        formatColumns: [],
+        editStateStyles: {},
+      })),
     });
     const loaded = await store.load('g1');
     expect(loaded?.modules['formatting']?.v).toBe(1);

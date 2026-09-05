@@ -5,7 +5,13 @@ import { withEditor } from '../meta.js';
  * Expression kinds in the AdaptableQL-compatible language. The kind tells the
  * editor which functions to offer and the validator which return type to expect.
  */
-export const ExpressionKind = z.enum(['scalar', 'boolean', 'aggregatedScalar', 'aggregatedBoolean', 'observable']);
+export const ExpressionKind = z.enum([
+  'scalar',
+  'boolean',
+  'aggregatedScalar',
+  'aggregatedBoolean',
+  'observable',
+]);
 export type ExpressionKind = z.infer<typeof ExpressionKind>;
 
 function expression(kind: ExpressionKind, title: string) {

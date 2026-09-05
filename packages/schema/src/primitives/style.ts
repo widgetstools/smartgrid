@@ -11,16 +11,19 @@ export const Color = withEditor(
     .string()
     .min(1)
     .max(64)
-    .regex(/^(#[0-9a-fA-F]{3,8}|(rgb|rgba|hsl|hsla|oklch|oklab|color)\(.+\)|var\(--[a-zA-Z0-9-]+\)|[a-zA-Z]+)$/, 'Not a colour'),
+    .regex(
+      /^(#[0-9a-fA-F]{3,8}|(rgb|rgba|hsl|hsla|oklch|oklab|color)\(.+\)|var\(--[a-zA-Z0-9-]+\)|[a-zA-Z]+)$/,
+      'Not a colour',
+    ),
   { 'x-editor': 'color', title: 'Colour' },
 );
 export type Color = z.infer<typeof Color>;
 
 /** A colour with an optional dark-theme override. Ported concept from stern-bak's ThemeAwareColor. */
-export const ThemeColor = withEditor(
-  z.union([Color, z.object({ light: Color, dark: Color })]),
-  { 'x-editor': 'themeColor', title: 'Colour' },
-);
+export const ThemeColor = withEditor(z.union([Color, z.object({ light: Color, dark: Color })]), {
+  'x-editor': 'themeColor',
+  title: 'Colour',
+});
 export type ThemeColor = z.infer<typeof ThemeColor>;
 
 export const BorderStyle = z.enum(['none', 'solid', 'dashed', 'dotted', 'double']);

@@ -126,7 +126,11 @@ export class ConfigStore {
   }
 
   /** Replace one module's data wholesale (convenience over `apply`). */
-  async setModule<M extends ModuleId>(moduleId: M, data: TypedGridConfig['modules'][M], options: ApplyOptions) {
+  async setModule<M extends ModuleId>(
+    moduleId: M,
+    data: TypedGridConfig['modules'][M],
+    options: ApplyOptions,
+  ) {
     const base = this.requireConfig();
     const op: Operation = base.modules[moduleId]
       ? { op: 'replace', path: `/modules/${moduleId}`, value: data }
@@ -220,6 +224,7 @@ function describe(r: ReturnType<typeof parseGridConfig>): string {
   if (r.ok) return '';
   const parts: string[] = [];
   if (r.envelopeIssues) parts.push(...r.envelopeIssues.map((i) => `${i.path.join('.')}: ${i.message}`));
-  for (const m of r.moduleIssues) parts.push(...m.issues.map((i) => `${m.moduleId}.${i.path.join('.')}: ${i.message}`));
+  for (const m of r.moduleIssues)
+    parts.push(...m.issues.map((i) => `${m.moduleId}.${i.path.join('.')}: ${i.message}`));
   return parts.join('; ');
 }

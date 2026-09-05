@@ -37,7 +37,11 @@ describe('GridConfig', () => {
   });
 
   it('preserves unknown modules', () => {
-    const result = parseGridConfig({ schemaVersion: 1, gridId: 'g', modules: { future: { v: 3, data: {} } } });
+    const result = parseGridConfig({
+      schemaVersion: 1,
+      gridId: 'g',
+      modules: { future: { v: 3, data: {} } },
+    });
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.unknownModules).toEqual(['future']);
   });

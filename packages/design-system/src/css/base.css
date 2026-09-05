@@ -1,0 +1,90 @@
+/* ─────────────────────────────────────────────────────────────
+   Base layer — the minimal global rules the design system needs.
+   Origin: stern-bak styles/base.css (+ the mechanically-required
+   form-control normalisation from scripts/build-styles-css.ts).
+   Plain CSS — no Tailwind directives — so non-Tailwind consumers
+   get the same baseline. Wrapped in `@layer base`: any unlayered
+   consumer rule wins, and under Tailwind 4 it merges into
+   Tailwind's own `base` layer (utilities still win).
+   ───────────────────────────────────────────────────────────── */
+
+@layer base {
+  /* Tailwind's border-* utilities set WIDTH only; without these defaults a
+     `border` class renders nothing (initial border-style is none). */
+  *,
+  ::before,
+  ::after {
+    box-sizing: border-box;
+    border-width: 0;
+    border-style: solid;
+    border-color: var(--sg-border);
+    outline-color: color-mix(in oklch, var(--sg-ring) 50%, transparent);
+  }
+
+  html,
+  body {
+    background-color: var(--sg-background);
+    color: var(--sg-foreground);
+    font-family: var(--sg-font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Body inherits the 13px baseline; html stays at the browser default
+     (16px) so rem-based utilities resolve correctly. Setting font-size on
+     html would shrink every rem-based class by ~19%. */
+  body {
+    margin: 0;
+    font-size: var(--sg-text-md);
+  }
+
+  ::selection {
+    background-color: var(--sg-state-selection);
+  }
+
+  /* Form controls do NOT inherit typography from their ancestors — browsers
+     substitute a system font. Every button/input we ship assumes inherited
+     type, so this is mechanically required, not an aesthetic opinion. */
+  button,
+  input,
+  optgroup,
+  select,
+  textarea {
+    font-family: inherit;
+    font-feature-settings: inherit;
+    font-variation-settings: inherit;
+    font-size: 100%;
+    font-weight: inherit;
+    line-height: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+    margin: 0;
+    padding: 0;
+  }
+
+  button,
+  select {
+    text-transform: none;
+  }
+
+  button,
+  input:where([type='button']),
+  input:where([type='reset']),
+  input:where([type='submit']) {
+    -webkit-appearance: button;
+    appearance: button;
+    background-color: transparent;
+    background-image: none;
+  }
+
+  :disabled {
+    cursor: default;
+  }
+
+  /* Tabular numerics for cell-monospace and any numeric column.
+     Apply via class on data tables, KPI numbers, price ticks. */
+  .sg-mono {
+    font-family: var(--sg-font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+}

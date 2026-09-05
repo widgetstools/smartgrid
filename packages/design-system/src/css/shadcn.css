@@ -1,0 +1,50 @@
+/* ============================================================================
+   SmartGrid design system — shadcn/ui semantic aliases
+   Every shadcn variable is an alias of an `--sg-*` token, so light, dark, the
+   paper variant and CVD all flow through automatically. Declared on `:root`
+   AND on every theming attribute so a themed subtree re-resolves the alias
+   against its own `--sg-*` values (custom properties are substituted where
+   they are declared, then inherited as computed values).
+   ============================================================================ */
+
+:root,
+[data-theme='light'],
+[data-theme='dark'],
+[data-variant],
+[data-cvd] {
+  --background: var(--sg-background);
+  --foreground: var(--sg-foreground);
+  --card: var(--sg-card);
+  --card-foreground: var(--sg-card-foreground);
+  --popover: var(--sg-popover);
+  --popover-foreground: var(--sg-popover-foreground);
+  --primary: var(--sg-primary);
+  --primary-foreground: var(--sg-primary-foreground);
+  --secondary: var(--sg-secondary);
+  --secondary-foreground: var(--sg-secondary-foreground);
+  --muted: var(--sg-muted);
+  --muted-foreground: var(--sg-muted-foreground);
+  --accent: var(--sg-accent);
+  --accent-foreground: var(--sg-accent-foreground);
+  --destructive: var(--sg-destructive);
+  --destructive-foreground: var(--sg-destructive-foreground);
+  --border: var(--sg-border);
+  --input: var(--sg-input);
+  --ring: var(--sg-ring);
+  --radius: var(--sg-radius);
+
+  --chart-1: var(--sg-chart-1);
+  --chart-2: var(--sg-chart-2);
+  --chart-3: var(--sg-chart-3);
+  --chart-4: var(--sg-chart-4);
+  --chart-5: var(--sg-chart-5);
+
+  --sidebar: var(--sg-sidebar);
+  --sidebar-foreground: var(--sg-sidebar-foreground);
+  --sidebar-primary: var(--sg-sidebar-primary);
+  --sidebar-primary-foreground: var(--sg-sidebar-primary-foreground);
+  --sidebar-accent: var(--sg-sidebar-accent);
+  --sidebar-accent-foreground: var(--sg-sidebar-accent-foreground);
+  --sidebar-border: var(--sg-sidebar-border);
+  --sidebar-ring: var(--sg-sidebar-ring);
+}

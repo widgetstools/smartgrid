@@ -34,7 +34,11 @@ export type Scope = z.infer<typeof Scope>;
 
 export const scopeAll = (): Scope => ({ kind: 'all' });
 export const scopeColumns = (...columnIds: string[]): Scope => ({ kind: 'columns', columnIds });
-export const scopeDataTypes = (...dataTypes: CellDataType[]): Scope => ({ kind: 'dataTypes', dataTypes, columnIds: [] });
+export const scopeDataTypes = (...dataTypes: CellDataType[]): Scope => ({
+  kind: 'dataTypes',
+  dataTypes,
+  columnIds: [],
+});
 
 /**
  * Row scope: which row kinds render the object. All included by default.

@@ -1,0 +1,43 @@
+/* ─────────────────────────────────────────────────────────────
+   AG Grid — SmartGrid chrome overrides.
+   Origin: stern-bak styles/ag-grid.css.
+   Theme params (adapters/agGrid.ts) own colours; these rules fix
+   header/filter layout and typography when the theme API leaves
+   gaps. Reads `--sg-*` tokens only.
+   ───────────────────────────────────────────────────────────── */
+
+@layer base {
+  .ag-header-cell-text,
+  .ag-header-group-text,
+  .ag-header-cell-label {
+    font-family: var(--sg-font-mono, ui-monospace, monospace);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ag-header-cell-label {
+    align-items: center;
+  }
+
+  .ag-header-cell-text,
+  .ag-header-group-text {
+    line-height: 1.2;
+  }
+
+  /* Floating filter row — match card surface, not washed-out light chrome */
+  .ag-floating-filter-body .ag-input-field-input,
+  .ag-floating-filter-body .ag-text-field-input,
+  .ag-floating-filter-input {
+    background-color: var(--sg-card);
+    color: var(--sg-foreground);
+    border-color: var(--sg-border);
+    border-radius: var(--sg-radius-sm, 2px);
+    min-height: calc(var(--sg-control-h-sm, 26px) - 4px);
+  }
+
+  .ag-floating-filter-body .ag-input-field-input:focus,
+  .ag-floating-filter-body .ag-text-field-input:focus {
+    border-color: var(--sg-primary);
+    outline: none;
+    box-shadow: 0 0 0 1px color-mix(in oklch, var(--sg-primary) 35%, transparent);
+  }
+}

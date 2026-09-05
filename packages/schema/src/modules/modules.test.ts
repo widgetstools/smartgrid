@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { FormatColumn, FormattingModule, Layout, LayoutModule, TableLayout, defaultTableLayout } from './index.js';
+import {
+  FormatColumn,
+  FormattingModule,
+  Layout,
+  LayoutModule,
+  TableLayout,
+  defaultTableLayout,
+} from './index.js';
 
 describe('Layout', () => {
   it('builds a default table layout with all defaults filled', () => {

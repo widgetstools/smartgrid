@@ -19,7 +19,10 @@ export const ObjectMeta = z.object({
     description: 'Disabled objects are kept but not applied',
   }),
   readOnly: z.boolean().default(false).describe('Locked by the deployer; users cannot edit or delete'),
-  tags: z.array(z.string()).default([]).describe('Layout names this object is scoped to; empty = all layouts'),
+  tags: z
+    .array(z.string())
+    .default([])
+    .describe('Layout names this object is scoped to; empty = all layouts'),
   source: z.enum(['seed', 'user', 'assistant']).default('user').describe('Who created the object'),
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
@@ -38,8 +41,16 @@ export type Duration = z.infer<typeof Duration>;
  */
 export const Icon = withEditor(
   z.discriminatedUnion('kind', [
-    z.object({ kind: z.literal('system'), name: z.string().min(1), size: z.number().int().min(8).max(64).optional() }),
-    z.object({ kind: z.literal('image'), src: z.string().min(1), size: z.number().int().min(8).max(64).optional() }),
+    z.object({
+      kind: z.literal('system'),
+      name: z.string().min(1),
+      size: z.number().int().min(8).max(64).optional(),
+    }),
+    z.object({
+      kind: z.literal('image'),
+      src: z.string().min(1),
+      size: z.number().int().min(8).max(64).optional(),
+    }),
     z.object({ kind: z.literal('emoji'), value: z.string().min(1).max(8) }),
   ]),
   { 'x-editor': 'icon', title: 'Icon' },

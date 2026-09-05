@@ -17,7 +17,11 @@ import type {
   TableLayout,
   TypedGridConfig,
 } from '@smartgrid/schema';
-import { defaultPredicateRegistry, type PredicateContext, type PredicateRegistry } from '@smartgrid/expressions';
+import {
+  defaultPredicateRegistry,
+  type PredicateContext,
+  type PredicateRegistry,
+} from '@smartgrid/expressions';
 import { buildValueFormatter, type FormatContext, type ValueFormatterFn } from './formatters.js';
 import { buildStylesheet, type StyleRule } from './styles.js';
 import { columnsInScope, rowKindAllowed } from './scope.js';
@@ -91,7 +95,11 @@ function flattenDefs(defs: (ColDef | ColGroupDef)[]): ColDef[] {
 function restoreGroups(base: (ColDef | ColGroupDef)[], flat: ColDef[]): (ColDef | ColGroupDef)[] {
   const byId = new Map(flat.map((d) => [colIdOf(d), d]));
   const walk = (defs: (ColDef | ColGroupDef)[]): (ColDef | ColGroupDef)[] =>
-    defs.map((d) => ('children' in d && Array.isArray(d.children) ? { ...d, children: walk(d.children) } : byId.get(colIdOf(d as ColDef)) ?? d));
+    defs.map((d) =>
+      'children' in d && Array.isArray(d.children)
+        ? { ...d, children: walk(d.children) }
+        : (byId.get(colIdOf(d as ColDef)) ?? d),
+    );
   return walk(base);
 }
 
@@ -130,7 +138,10 @@ function applyLayout(defs: ColDef[], layout: Layout): ColDef[] {
   const ordered: ColDef[] = [];
   const seen = new Set<string>();
 
-  const orderList = layout.kind === 'table' ? layout.columns : [...layout.rowGroupColumns, ...layout.pivotColumns, ...layout.aggregations.map((a) => a.columnId)];
+  const orderList =
+    layout.kind === 'table'
+      ? layout.columns
+      : [...layout.rowGroupColumns, ...layout.pivotColumns, ...layout.aggregations.map((a) => a.columnId)];
   for (const id of orderList) {
     const d = byId.get(id);
     if (d && !seen.has(id)) {
@@ -201,11 +212,19 @@ function applyLayout(defs: ColDef[], layout: Layout): ColDef[] {
 function gridOptionsFromLayout(layout: Layout): GridOptions {
   const sel = layout.rowSelection;
   const opts: GridOptions = {
-    groupDisplayType: layout.rowGroupDisplayType === 'single' ? 'singleColumn' : layout.rowGroupDisplayType === 'multi' ? 'multipleColumns' : 'groupRows',
+    groupDisplayType:
+      layout.rowGroupDisplayType === 'single'
+        ? 'singleColumn'
+        : layout.rowGroupDisplayType === 'multi'
+          ? 'multipleColumns'
+          : 'groupRows',
     suppressAggFuncInHeader: layout.suppressAggFuncInHeader,
     grandTotalRow: layout.grandTotalRow === 'none' ? undefined : layout.grandTotalRow,
     groupDefaultExpanded:
-      layout.rowGroupExpansion.defaultBehavior === 'alwaysExpanded' || layout.rowGroupExpansion.defaultBehavior === 'expanded' ? -1 : 0,
+      layout.rowGroupExpansion.defaultBehavior === 'alwaysExpanded' ||
+      layout.rowGroupExpansion.defaultBehavior === 'expanded'
+        ? -1
+        : 0,
     pivotMode: layout.kind === 'pivot',
     rowSelection:
       sel.mode === 'none'
@@ -263,7 +282,12 @@ function compileRule(
   };
 }
 
-function applyFormatting(defs: ColDef[], formatting: FormattingModule, input: BuildInput, warn: (m: string) => void): string {
+function applyFormatting(
+  defs: ColDef[],
+  formatting: FormattingModule,
+  input: BuildInput,
+  warn: (m: string) => void,
+): string {
   const registry = input.predicates ?? defaultPredicateRegistry;
   const ctx = input.predicateContext ?? {};
   const active = formatting.formatColumns.filter((fc) => fc.enabled);
@@ -271,7 +295,10 @@ function applyFormatting(defs: ColDef[], formatting: FormattingModule, input: Bu
   // Precedence: earlier in the array wins. CSS cascade makes later rules win,
   // so emit the stylesheet in reverse order.
   const styleRules: StyleRule[] = [];
-  const perColumn = new Map<string, { fc: FormatColumn; compiled: CompiledRule; formatter?: ValueFormatterFn }[]>();
+  const perColumn = new Map<
+    string,
+    { fc: FormatColumn; compiled: CompiledRule; formatter?: ValueFormatterFn }[]
+  >();
 
   for (const fc of active) {
     const compiled = compileRule(fc.rule, registry, ctx, warn, fc.name);
@@ -303,18 +330,30 @@ function applyFormatting(defs: ColDef[], formatting: FormattingModule, input: Bu
     if (Object.keys(cellClassRules).length) d.cellClassRules = cellClassRules;
 
     if (headerRules.length) {
-      d.headerClass = [...(Array.isArray(d.headerClass) ? d.headerClass : d.headerClass ? [String(d.headerClass)] : []), ...headerRules.map((e) => FC_CLASS(e.fc.id))];
+      d.headerClass = [
+        ...(Array.isArray(d.headerClass) ? d.headerClass : d.headerClass ? [String(d.headerClass)] : []),
+        ...headerRules.map((e) => FC_CLASS(e.fc.id)),
+      ];
     }
 
     const formatted = cellEntries.filter((e) => e.formatter);
     if (formatted.length) {
       const hostFormatter = typeof d.valueFormatter === 'function' ? d.valueFormatter : undefined;
       d.valueFormatter = (p: ValueFormatterParams) => {
-        const fctx: FormatContext = { columnHeader: header, rowData: p.data, customFormatters: input.customFormatters };
+        const fctx: FormatContext = {
+          columnHeader: header,
+          rowData: p.data,
+          customFormatters: input.customFormatters,
+        };
         for (const e of formatted) {
-          if (rowKindAllowed(e.fc.rowScope, kindOf(p)) && e.compiled.test(p.value, p.data, undefined)) return e.formatter!(p.value, fctx);
+          if (rowKindAllowed(e.fc.rowScope, kindOf(p)) && e.compiled.test(p.value, p.data, undefined))
+            return e.formatter!(p.value, fctx);
         }
-        return hostFormatter ? hostFormatter(p) : p.value === null || p.value === undefined ? '' : String(p.value);
+        return hostFormatter
+          ? hostFormatter(p)
+          : p.value === null || p.value === undefined
+            ? ''
+            : String(p.value);
       };
     }
   }

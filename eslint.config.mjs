@@ -14,7 +14,11 @@ import globals from 'globals';
 
 const restrict = (...patterns) => ['error', { patterns }];
 
-const FOUNDATION = ['packages/design-system/**/*.{ts,tsx}', 'packages/ui/**/*.{ts,tsx}', 'packages/schema/**/*.{ts,tsx}'];
+const FOUNDATION = [
+  'packages/design-system/**/*.{ts,tsx}',
+  'packages/ui/**/*.{ts,tsx}',
+  'packages/schema/**/*.{ts,tsx}',
+];
 const MID = ['packages/expressions/**/*.{ts,tsx}', 'packages/store/**/*.{ts,tsx}'];
 const EDITORS = ['packages/editors/**/*.{ts,tsx}'];
 const ENGINE = ['packages/engine/**/*.{ts,tsx}'];
@@ -26,6 +30,10 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    files: ['**/*.{mjs,cjs,js}'],
+    languageOptions: { globals: { ...globals.node } },
+  },
+  {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       globals: { ...globals.browser, ...globals.node },
@@ -33,7 +41,10 @@ export default tseslint.config(
     plugins: { 'react-hooks': reactHooks },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports', fixStyle: 'inline-type-imports' }],
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
+      ],
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
     },
@@ -55,7 +66,10 @@ export default tseslint.config(
           group: ['@smartgrid/!(schema|design-system)', '@smartgrid/!(schema|design-system)/**'],
           message: 'expressions and store may only import schema and design-system.',
         },
-        { group: ['react', 'react-dom', 'react/**', 'react-dom/**'], message: 'expressions and store are framework-agnostic.' },
+        {
+          group: ['react', 'react-dom', 'react/**', 'react-dom/**'],
+          message: 'expressions and store are framework-agnostic.',
+        },
       ),
     },
   },
@@ -63,8 +77,12 @@ export default tseslint.config(
     files: EDITORS,
     rules: {
       'no-restricted-imports': restrict({
-        group: ['@smartgrid/!(schema|expressions|design-system|ui)', '@smartgrid/!(schema|expressions|design-system|ui)/**'],
-        message: 'editors may import schema, expressions, design-system and ui only; never engine, assistant or AG Grid.',
+        group: [
+          '@smartgrid/!(schema|expressions|design-system|ui)',
+          '@smartgrid/!(schema|expressions|design-system|ui)/**',
+        ],
+        message:
+          'editors may import schema, expressions, design-system and ui only; never engine, assistant or AG Grid.',
       }),
     },
   },
@@ -73,10 +91,16 @@ export default tseslint.config(
     rules: {
       'no-restricted-imports': restrict(
         {
-          group: ['@smartgrid/!(schema|expressions|store|design-system)', '@smartgrid/!(schema|expressions|store|design-system)/**'],
+          group: [
+            '@smartgrid/!(schema|expressions|store|design-system)',
+            '@smartgrid/!(schema|expressions|store|design-system)/**',
+          ],
           message: 'engine may import schema, expressions, store and design-system only.',
         },
-        { group: ['react', 'react-dom', 'react/**', 'react-dom/**'], message: 'engine is framework-agnostic.' },
+        {
+          group: ['react', 'react-dom', 'react/**', 'react-dom/**'],
+          message: 'engine is framework-agnostic.',
+        },
       ),
     },
   },

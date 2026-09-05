@@ -1,0 +1,376 @@
+/* ============================================================================
+   SmartGrid design system — source tokens (single `--sg-*` namespace)
+   Origin: stern-bak packages/design-system/src/tokens/starui-tokens.css (OKLCH
+   source), themes/fi-dark.css + fi-light.css (motion / order-book / divider
+   tokens) and adapters/compatCss.ts (derived semantic aliases). The legacy
+   alias layers (st, ds, bn, fi, p, ck prefixes) are gone.
+   ----------------------------------------------------------------------------
+   • Default accent ........ Cyan (trading-desk)
+   • Positive / Negative ... Teal / Rose
+   • Type .................. Inter (sans) · JetBrains Mono (numeric)
+   • Themes ................ light (default `:root`) · dark · light "paper" variant
+   • CVD ................... `[data-cvd="on"]` swaps buy/sell to blue/orange
+
+   Every colour token is a COMPLETE colour value (`oklch(...)`), so it can be
+   used directly (`background: var(--sg-card)`) and alpha variants go through
+   `color-mix(in oklch, var(--sg-primary) 12%, transparent)`.
+
+   Scoping: base tokens live on `:root` / `[data-theme]`; the derived aliases at
+   the bottom are re-declared on every theming attribute so a themed subtree
+   (`<div data-theme="dark">`) re-resolves them against its own base tokens.
+   ============================================================================ */
+
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  /* ── Surfaces — neutral grays, white editor ─────────────────────────────── */
+  --sg-background: oklch(0.972 0.0015 256);
+  --sg-foreground: oklch(0.345 0.004 256);
+  --sg-card: oklch(1 0 0);
+  --sg-card-foreground: oklch(0.345 0.004 256);
+  --sg-popover: oklch(1 0 0);
+  --sg-popover-foreground: oklch(0.345 0.004 256);
+
+  /* ── Brand / accent — cyan ──────────────────────────────────────────────── */
+  --sg-primary: oklch(0.54 0.135 220);
+  --sg-primary-foreground: oklch(0.99 0.012 220);
+  --sg-secondary: oklch(0.959 0.002 256);
+  --sg-secondary-foreground: oklch(0.4 0.005 256);
+  --sg-muted: oklch(0.94 0.002 256);
+  --sg-muted-foreground: oklch(0.52 0.004 256);
+  --sg-accent: oklch(0.92 0.003 256);
+  --sg-accent-foreground: oklch(0.345 0.005 256);
+
+  --sg-destructive: oklch(0.505 0.225 27);
+  --sg-destructive-foreground: oklch(1 0 0);
+
+  --sg-border: oklch(0.92 0.003 256);
+  --sg-border-strong: oklch(0.853 0.004 256);
+  --sg-input: oklch(0.853 0.004 256);
+  --sg-grid-border: oklch(0.932 0.003 256);
+  --sg-ring: oklch(0.54 0.135 220);
+
+  /* ── Fixed-income semantics — Teal (up) / Rose (down) ───────────────────── */
+  --sg-buy: oklch(0.52 0.105 192);
+  --sg-buy-foreground: oklch(1 0 0);
+  --sg-sell: oklch(0.515 0.205 12);
+  --sg-sell-foreground: oklch(1 0 0);
+  --sg-positive: oklch(0.53 0.105 192);
+  --sg-negative: oklch(0.525 0.205 12);
+  --sg-warning: oklch(0.72 0.17 78);
+  --sg-warning-foreground: oklch(0.24 0.06 70);
+  --sg-info: oklch(0.51 0.21 252);
+  --sg-info-foreground: oklch(1 0 0);
+  --sg-purple: oklch(0.55 0.16 300);
+
+  --sg-chart-1: oklch(0.52 0.105 192);
+  --sg-chart-2: oklch(0.5 0.16 250);
+  --sg-chart-3: oklch(0.62 0.13 75);
+  --sg-chart-4: oklch(0.55 0.16 300);
+  --sg-chart-5: oklch(0.525 0.205 12);
+
+  /* ── Elevation ──────────────────────────────────────────────────────────── */
+  --sg-shadow-sm: 0 1px 2px rgba(16, 20, 24, 0.05);
+  --sg-shadow-card:
+    0 0 0 1px rgba(16, 20, 24, 0.015), 0 1px 2px rgba(16, 20, 24, 0.05),
+    0 8px 24px -12px rgba(16, 20, 24, 0.12);
+  --sg-shadow-overlay: 0 12px 40px -8px rgba(16, 20, 24, 0.16), 0 2px 8px rgba(16, 20, 24, 0.08);
+  --sg-scrollbar: oklch(0.8 0.004 256);
+}
+
+/* ── Theme-independent geometry / density / type / motion ─────────────────── */
+:root {
+  --sg-radius: 2px;
+  --sg-radius-sm: var(--sg-radius);
+  --sg-radius-md: var(--sg-radius);
+  --sg-radius-lg: var(--sg-radius);
+  --sg-radius-xl: var(--sg-radius);
+  --sg-radius-full: 9999px;
+
+  /* Density (compact default) */
+  --sg-control-h: 30px;
+  --sg-control-h-sm: calc(var(--sg-control-h) - 4px);
+  --sg-control-h-lg: calc(var(--sg-control-h) + 6px);
+  --sg-control-px: 10px;
+  --sg-row-h: 30px;
+  --sg-gap: 10px;
+
+  /* Type — Inter / JetBrains Mono */
+  --sg-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --sg-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --sg-text-2xs: 10px;
+  --sg-text-xs: 11px;
+  --sg-text-sm: 12px;
+  --sg-text-md: 13px;
+  --sg-text-base: 13px;
+  --sg-text-lg: 15px;
+  --sg-text-xl: 18px;
+  --sg-text-2xl: 22px;
+  --sg-text-3xl: 30px;
+
+  /* Motion */
+  --sg-t-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --sg-t-normal: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  --sg-t-slow: 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --sg-tx-instant: 80ms cubic-bezier(0.4, 0, 0.6, 1);
+  --sg-tx-fast: var(--sg-t-fast);
+  --sg-tx-normal: var(--sg-t-normal);
+  --sg-tx-slow: var(--sg-t-slow);
+  --sg-tx-tick: 900ms cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* ============================================================================
+   DARK — blue-graphite
+   ============================================================================ */
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --sg-background: oklch(0.176 0.017 258);
+  --sg-foreground: oklch(0.96 0.006 258);
+  --sg-card: oklch(0.203 0.0185 258);
+  --sg-card-foreground: oklch(0.96 0.006 258);
+  --sg-popover: oklch(0.217 0.02 258);
+  --sg-popover-foreground: oklch(0.96 0.006 258);
+
+  /* Single vivid accent (bright cyan-blue, L≈0.72) with a deep-navy foreground
+     for AA text on primary fills. Buttons, ring, active toggles, highlights. */
+  --sg-primary: oklch(0.72 0.145 218);
+  --sg-primary-foreground: oklch(0.16 0.04 222);
+  --sg-secondary: oklch(0.26 0.023 258);
+  --sg-secondary-foreground: oklch(0.93 0.006 258);
+  --sg-muted: oklch(0.251 0.023 258);
+  --sg-muted-foreground: oklch(0.7 0.015 258);
+  --sg-accent: oklch(0.28 0.05 220);
+  --sg-accent-foreground: oklch(0.84 0.11 218);
+
+  --sg-destructive: oklch(0.7 0.215 24);
+  --sg-destructive-foreground: oklch(0.16 0.06 26);
+
+  --sg-border: oklch(0.425 0.02 258);
+  --sg-border-strong: oklch(0.525 0.022 258);
+  --sg-input: oklch(0.355 0.019 258);
+  --sg-grid-border: oklch(0.365 0.019 258);
+  --sg-ring: oklch(0.72 0.145 218);
+
+  /* Teal (up) / Rose (down) — dark, AA text on fill */
+  --sg-buy: oklch(0.76 0.135 192);
+  --sg-buy-foreground: oklch(0.16 0.05 195);
+  --sg-sell: oklch(0.7 0.19 12);
+  --sg-sell-foreground: oklch(0.16 0.06 14);
+  --sg-positive: oklch(0.78 0.135 192);
+  --sg-negative: oklch(0.71 0.19 12);
+  --sg-warning: oklch(0.85 0.17 88);
+  --sg-warning-foreground: oklch(0.22 0.06 80);
+  --sg-info: oklch(0.72 0.16 242);
+  --sg-info-foreground: oklch(0.15 0.05 245);
+  --sg-purple: oklch(0.7 0.13 300);
+
+  --sg-chart-1: oklch(0.76 0.135 192);
+  --sg-chart-2: oklch(0.7 0.12 235);
+  --sg-chart-3: oklch(0.82 0.135 85);
+  --sg-chart-4: oklch(0.7 0.13 300);
+  --sg-chart-5: oklch(0.71 0.19 12);
+
+  --sg-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --sg-shadow-card:
+    0 0 0 1px rgba(255, 255, 255, 0.02), 0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 2px 8px rgba(0, 0, 0, 0.55), 0 8px 24px -8px rgba(0, 0, 0, 0.6);
+  --sg-shadow-overlay:
+    0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 16px 48px -12px rgba(0, 0, 0, 0.75),
+    0 4px 12px rgba(0, 0, 0, 0.5);
+  --sg-scrollbar: oklch(0.36 0.012 258);
+}
+
+/* ============================================================================
+   LIGHT "PAPER" VARIANT — warm cream chrome (set via applyTheme({ variant }))
+   Values are the `sgHex.lightPaper` pack (tokens/staruiHex.ts) in OKLCH.
+   ============================================================================ */
+[data-theme='light'][data-variant='paper'] {
+  --sg-background: oklch(0.947 0.006 85);
+  --sg-foreground: oklch(0.266 0.022 88);
+  --sg-card: oklch(0.98 0.009 85);
+  --sg-card-foreground: oklch(0.266 0.022 88);
+  --sg-popover: oklch(0.98 0.009 85);
+  --sg-popover-foreground: oklch(0.266 0.022 88);
+
+  --sg-primary: oklch(0.52 0.094 223);
+  --sg-primary-foreground: oklch(1 0 0);
+  --sg-secondary: oklch(0.926 0.017 85);
+  --sg-secondary-foreground: oklch(0.412 0.03 87);
+  --sg-muted: oklch(0.926 0.017 85);
+  --sg-muted-foreground: oklch(0.508 0.033 90);
+  --sg-accent: oklch(0.884 0.023 85);
+  --sg-accent-foreground: oklch(0.412 0.03 87);
+
+  --sg-destructive: oklch(0.514 0.198 17);
+  --sg-destructive-foreground: oklch(1 0 0);
+
+  --sg-border: oklch(0.839 0.029 85);
+  --sg-border-strong: oklch(0.737 0.038 88);
+  --sg-input: oklch(0.737 0.038 88);
+  --sg-grid-border: oklch(0.89 0.024 86);
+  --sg-ring: oklch(0.52 0.094 223);
+
+  --sg-buy: oklch(0.511 0.086 186);
+  --sg-buy-foreground: oklch(1 0 0);
+  --sg-sell: oklch(0.514 0.198 17);
+  --sg-sell-foreground: oklch(1 0 0);
+  --sg-positive: oklch(0.511 0.086 186);
+  --sg-negative: oklch(0.514 0.198 17);
+  --sg-warning: oklch(0.555 0.146 49);
+  --sg-info: oklch(0.52 0.094 223);
+  --sg-info-foreground: oklch(1 0 0);
+  --sg-purple: oklch(0.491 0.241 293);
+
+  --sg-chart-1: oklch(0.52 0.094 223);
+  --sg-chart-2: oklch(0.511 0.086 186);
+  --sg-chart-3: oklch(0.555 0.146 49);
+  --sg-chart-4: oklch(0.491 0.241 293);
+  --sg-chart-5: oklch(0.514 0.198 17);
+
+  --sg-shadow-sm: 0 1px 2px rgba(42, 37, 25, 0.06);
+  --sg-shadow-card: 0 1px 2px rgba(42, 37, 25, 0.06);
+  --sg-shadow-overlay: 0 1px 2px rgba(42, 37, 25, 0.08), 0 8px 22px rgba(42, 37, 25, 0.12);
+  --sg-scrollbar: oklch(0.737 0.038 88);
+}
+
+/* ============================================================================
+   CVD-SAFE — buy/sell swap to blue/orange (applyTheme({ cvd: true }))
+   ============================================================================ */
+[data-theme='dark'][data-cvd='on'] {
+  --sg-positive: oklch(0.72 0.14 250);
+  --sg-negative: oklch(0.75 0.18 25);
+  --sg-buy: oklch(0.72 0.14 250);
+  --sg-sell: oklch(0.75 0.18 25);
+}
+
+[data-theme='light'][data-cvd='on'] {
+  --sg-positive: oklch(0.45 0.18 250);
+  --sg-negative: oklch(0.5 0.22 25);
+  --sg-buy: oklch(0.45 0.18 250);
+  --sg-sell: oklch(0.5 0.22 25);
+}
+
+/* ============================================================================
+   DERIVED SEMANTIC ALIASES — every value is a var()/color-mix() over the base
+   tokens above, so they follow theme, variant and CVD flips automatically.
+   Re-declared on every theming attribute (see the scoping note at the top).
+   ============================================================================ */
+:root,
+[data-theme],
+[data-variant],
+[data-cvd] {
+  /* Surfaces & text */
+  --sg-surface-ground: var(--sg-background);
+  --sg-surface-sunken: var(--sg-muted);
+  --sg-surface-primary: var(--sg-card);
+  --sg-surface-secondary: var(--sg-secondary);
+  --sg-surface-tertiary: var(--sg-muted);
+  --sg-surface-quaternary: var(--sg-accent);
+
+  --sg-text-primary: var(--sg-foreground);
+  --sg-text-secondary: var(--sg-secondary-foreground);
+  --sg-text-muted: var(--sg-muted-foreground);
+  --sg-text-faint: color-mix(in oklch, var(--sg-muted-foreground) 75%, transparent);
+  --sg-text-disabled: color-mix(in oklch, var(--sg-muted-foreground) 55%, transparent);
+
+  --sg-border-primary: var(--sg-border);
+  --sg-border-secondary: var(--sg-border-strong);
+  --sg-border-tertiary: var(--sg-grid-border);
+  --sg-divider: 1px solid var(--sg-border);
+
+  /* Tick colours follow positive/negative (and therefore CVD) */
+  --sg-tick-up: var(--sg-positive);
+  --sg-tick-down: var(--sg-negative);
+
+  /* Primary states */
+  --sg-primary-hover: color-mix(in oklch, var(--sg-primary) 88%, var(--sg-foreground) 12%);
+  --sg-primary-pressed: color-mix(in oklch, var(--sg-primary) 82%, var(--sg-foreground) 18%);
+  --sg-primary-soft: color-mix(in oklch, var(--sg-primary) 12%, transparent);
+  --sg-primary-ring: color-mix(in oklch, var(--sg-ring) 45%, transparent);
+
+  /* Status accents (the cell renderers read these) */
+  --sg-accent-positive: var(--sg-positive);
+  --sg-accent-positive-hover: var(--sg-buy);
+  --sg-accent-negative: var(--sg-negative);
+  --sg-accent-negative-hover: var(--sg-sell);
+  --sg-accent-warning: var(--sg-warning);
+  --sg-accent-info: var(--sg-info);
+  --sg-accent-info-hover: color-mix(in oklch, var(--sg-info) 88%, var(--sg-foreground) 12%);
+  --sg-accent-highlight: var(--sg-info);
+  --sg-accent-purple: var(--sg-purple);
+
+  --sg-action-buy-bg: var(--sg-buy);
+  --sg-action-buy-fg: var(--sg-buy-foreground);
+  --sg-action-sell-bg: var(--sg-sell);
+  --sg-action-sell-fg: var(--sg-sell-foreground);
+
+  /* Soft fills + rings for badges / pills */
+  --sg-overlay-positive-soft: color-mix(in oklch, var(--sg-buy) 12%, transparent);
+  --sg-overlay-positive-ring: color-mix(in oklch, var(--sg-buy) 40%, transparent);
+  --sg-overlay-negative-soft: color-mix(in oklch, var(--sg-sell) 12%, transparent);
+  --sg-overlay-negative-ring: color-mix(in oklch, var(--sg-sell) 40%, transparent);
+  --sg-overlay-warning-soft: color-mix(in oklch, var(--sg-warning) 13%, transparent);
+  --sg-overlay-warning-ring: color-mix(in oklch, var(--sg-warning) 40%, transparent);
+  --sg-overlay-info-soft: color-mix(in oklch, var(--sg-info) 12%, transparent);
+  --sg-overlay-info-ring: color-mix(in oklch, var(--sg-info) 40%, transparent);
+  --sg-overlay-neutral-soft: color-mix(in oklch, var(--sg-muted-foreground) 10%, transparent);
+  --sg-overlay-neutral-ring: color-mix(in oklch, var(--sg-muted-foreground) 25%, transparent);
+
+  /* Interaction states */
+  --sg-state-focus-ring: var(--sg-ring);
+  --sg-state-focus-ring-bg: color-mix(in oklch, var(--sg-primary) 12%, transparent);
+  --sg-state-disabled-bg: var(--sg-muted);
+  --sg-state-disabled-fg: color-mix(in oklch, var(--sg-muted-foreground) 55%, transparent);
+  --sg-state-hover-overlay: color-mix(in oklch, var(--sg-foreground) 5%, transparent);
+  --sg-state-selection: color-mix(in oklch, var(--sg-primary) 16%, transparent);
+
+  /* Elevation */
+  --sg-elevation-card: var(--sg-shadow-card);
+  --sg-elevation-overlay: var(--sg-shadow-overlay);
+  --sg-elevation-glow: 0 0 0 3px color-mix(in oklch, var(--sg-ring) 45%, transparent);
+
+  /* Trading surfaces (order book / trade ticket) */
+  --sg-trade-flat: var(--sg-muted-foreground);
+  --sg-trade-positive-strip: color-mix(in oklch, var(--sg-positive) 10%, transparent);
+  --sg-trade-negative-strip: color-mix(in oklch, var(--sg-negative) 10%, transparent);
+  --sg-trade-bid-fill: color-mix(in oklch, var(--sg-buy) 15%, transparent);
+  --sg-trade-ask-fill: color-mix(in oklch, var(--sg-sell) 15%, transparent);
+
+  /* Sidebar (shadcn sidebar block) */
+  --sg-sidebar: var(--sg-background);
+  --sg-sidebar-foreground: var(--sg-foreground);
+  --sg-sidebar-primary: var(--sg-primary);
+  --sg-sidebar-primary-foreground: var(--sg-primary-foreground);
+  --sg-sidebar-accent: var(--sg-secondary);
+  --sg-sidebar-accent-foreground: var(--sg-foreground);
+  --sg-sidebar-border: var(--sg-border);
+  --sg-sidebar-ring: var(--sg-primary);
+
+  /* Control density tiers — mirrors tokens/controls.ts */
+  --sg-control-xs-height: 24px;
+  --sg-control-xs-padding-x: 8px;
+  --sg-control-xs-gap: 4px;
+  --sg-control-xs-font-size: var(--sg-text-xs);
+  --sg-control-xs-icon-size: 12px;
+  --sg-control-xs-radius: var(--sg-radius-sm);
+  --sg-control-sm-height: var(--sg-control-h-sm);
+  --sg-control-sm-padding-x: var(--sg-control-px);
+  --sg-control-sm-gap: 6px;
+  --sg-control-sm-font-size: var(--sg-text-sm);
+  --sg-control-sm-icon-size: 14px;
+  --sg-control-sm-radius: var(--sg-radius-sm);
+  --sg-control-md-height: var(--sg-control-h);
+  --sg-control-md-padding-x: 12px;
+  --sg-control-md-gap: 6px;
+  --sg-control-md-font-size: var(--sg-text-md);
+  --sg-control-md-icon-size: 14px;
+  --sg-control-md-radius: var(--sg-radius-sm);
+  --sg-control-lg-height: var(--sg-control-h-lg);
+  --sg-control-lg-padding-x: 12px;
+  --sg-control-lg-gap: 8px;
+  --sg-control-lg-font-size: var(--sg-text-md);
+  --sg-control-lg-icon-size: 16px;
+  --sg-control-lg-radius: var(--sg-radius-sm);
+}

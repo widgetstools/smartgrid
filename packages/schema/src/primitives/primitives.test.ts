@@ -30,7 +30,11 @@ describe('Scope', () => {
   it('accepts all four kinds', () => {
     expect(Scope.parse({ kind: 'all' })).toEqual({ kind: 'all' });
     expect(Scope.parse(scopeColumns('a', 'b'))).toEqual({ kind: 'columns', columnIds: ['a', 'b'] });
-    expect(Scope.parse(scopeDataTypes('number'))).toEqual({ kind: 'dataTypes', dataTypes: ['number'], columnIds: [] });
+    expect(Scope.parse(scopeDataTypes('number'))).toEqual({
+      kind: 'dataTypes',
+      dataTypes: ['number'],
+      columnIds: [],
+    });
     expect(Scope.parse({ kind: 'columnTypes', columnTypes: ['calculatedColumn'] }).kind).toBe('columnTypes');
   });
   it('requires at least one column id', () => {
@@ -46,7 +50,15 @@ describe('Predicate', () => {
     expect(predicatesForDataType('number')).toContain('GreaterThan');
     expect(predicatesForDataType('number')).not.toContain('Contains');
     expect(predicatesForDataType('date')).toContain('ThisQuarter');
-    expect(predicatesForDataType('boolean')).toEqual(['Blanks', 'NonBlanks', 'In', 'NotIn', 'AnyChange', 'True', 'False']);
+    expect(predicatesForDataType('boolean')).toEqual([
+      'Blanks',
+      'NonBlanks',
+      'In',
+      'NotIn',
+      'AnyChange',
+      'True',
+      'False',
+    ]);
   });
   it('accepts custom predicate ids and a referenced column', () => {
     const p = Predicate.parse({ predicateId: 'my_custom', inputs: [3], columnId: 'other' });
@@ -69,7 +81,14 @@ describe('Rule', () => {
 
 describe('Style and Color', () => {
   it('accepts hex, rgba, oklch, tokens and named colours', () => {
-    for (const c of ['#fff', '#12345678', 'rgba(1,2,3,.5)', 'oklch(0.7 0.1 200)', 'var(--sg-accent)', 'red']) {
+    for (const c of [
+      '#fff',
+      '#12345678',
+      'rgba(1,2,3,.5)',
+      'oklch(0.7 0.1 200)',
+      'var(--sg-accent)',
+      'red',
+    ]) {
       expect(Color.safeParse(c).success, c).toBe(true);
     }
     expect(Color.safeParse('not a colour!').success).toBe(false);
@@ -93,7 +112,9 @@ describe('DisplayFormat', () => {
     expect(DisplayFormat.parse({ kind: 'number', preset: 'Dollar', fractionDigits: 2 }).kind).toBe('number');
     expect(DisplayFormat.parse({ kind: 'string', case: 'upper' }).kind).toBe('string');
     expect(DisplayFormat.parse({ kind: 'date', pattern: 'dd-MMM-yyyy' }).kind).toBe('date');
-    expect(DisplayFormat.parse({ kind: 'template', template: '[value] ([rowData.ccy])' }).kind).toBe('template');
+    expect(DisplayFormat.parse({ kind: 'template', template: '[value] ([rowData.ccy])' }).kind).toBe(
+      'template',
+    );
     expect(DisplayFormat.parse({ kind: 'excel', format: '#,##0.00' }).kind).toBe('excel');
     expect(DisplayFormat.parse({ kind: 'tick', denominator: '32' })).toMatchObject({ showPlus: false });
     expect(DisplayFormat.parse({ kind: 'custom', formatterId: 'x' }).kind).toBe('custom');

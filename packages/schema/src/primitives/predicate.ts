@@ -132,7 +132,11 @@ export const Predicate = withEditor(
   z.object({
     predicateId: z.union([PredicateId, z.string().min(1)]),
     inputs: z.array(z.unknown()).default([]),
-    columnId: z.string().min(1).optional().describe('Evaluate against this column instead of the scoped column'),
+    columnId: z
+      .string()
+      .min(1)
+      .optional()
+      .describe('Evaluate against this column instead of the scoped column'),
   }),
   { 'x-editor': 'predicate', title: 'Condition' },
 );

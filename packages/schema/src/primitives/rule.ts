@@ -34,6 +34,10 @@ export const AlertRule = withEditor(
     z.object({ kind: z.literal('aggregated'), expression: AggregatedBooleanExpression }),
     z.object({ kind: z.literal('observable'), expression: ObservableExpression }),
   ]),
-  { 'x-editor': 'rule', title: 'Condition', 'x-editor-options': { allowAggregated: true, allowObservable: true } },
+  {
+    'x-editor': 'rule',
+    title: 'Condition',
+    'x-editor-options': { allowAggregated: true, allowObservable: true },
+  },
 );
 export type AlertRule = z.infer<typeof AlertRule>;

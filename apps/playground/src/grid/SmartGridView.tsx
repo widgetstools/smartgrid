@@ -20,7 +20,15 @@ export interface SmartGridViewProps {
  * rebuilds columnDefs/gridOptions and re-injects the stylesheet; AG Grid
  * diffs column definitions by colId so the grid updates in place.
  */
-export function SmartGridView({ config, baseColumnDefs, columns, rowData, theme, onGridReady, onWarnings }: SmartGridViewProps) {
+export function SmartGridView({
+  config,
+  baseColumnDefs,
+  columns,
+  rowData,
+  theme,
+  onGridReady,
+  onWarnings,
+}: SmartGridViewProps) {
   const styleRef = useRef<HTMLStyleElement | null>(null);
 
   const built = useMemo(

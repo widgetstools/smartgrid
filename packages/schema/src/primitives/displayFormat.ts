@@ -38,7 +38,11 @@ export const NumberFormat = z.object({
   abs: z.boolean().optional(),
   rounding: z.enum(['round', 'ceiling', 'floor', 'truncate']).optional(),
   empty: z.boolean().optional().describe('Render nothing for null/undefined'),
-  content: z.string().max(200).optional().describe('Replace the value; supports [value], [column], [rowData.x]'),
+  content: z
+    .string()
+    .max(200)
+    .optional()
+    .describe('Replace the value; supports [value], [column], [rowData.x]'),
 });
 export type NumberFormat = z.infer<typeof NumberFormat>;
 
@@ -102,7 +106,15 @@ export const CustomFormat = z.object({
 export type CustomFormat = z.infer<typeof CustomFormat>;
 
 export const DisplayFormat = withEditor(
-  z.discriminatedUnion('kind', [NumberFormat, StringFormat, DateFormat, TemplateFormat, ExcelFormat, TickFormat, CustomFormat]),
+  z.discriminatedUnion('kind', [
+    NumberFormat,
+    StringFormat,
+    DateFormat,
+    TemplateFormat,
+    ExcelFormat,
+    TickFormat,
+    CustomFormat,
+  ]),
   { 'x-editor': 'displayFormat', title: 'Display format' },
 );
 export type DisplayFormat = z.infer<typeof DisplayFormat>;

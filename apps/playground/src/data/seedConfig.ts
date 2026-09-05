@@ -26,11 +26,22 @@ export function seedConfig(): GridConfig {
     'tradeDate',
   ]);
   blotter.columnPinning = { tradeId: 'left' };
-  blotter.columnSizing = { instrument: { width: 180, resizable: true }, notional: { width: 130, resizable: true } };
+  blotter.columnSizing = {
+    instrument: { width: 180, resizable: true },
+    notional: { width: 130, resizable: true },
+  };
   blotter.columnSorts = [{ columnId: 'tradeDate', order: 'desc' }];
   blotter.rowSelection = { ...blotter.rowSelection, mode: 'multiRow' };
 
-  const byDesk = defaultTableLayout('by-desk', 'By desk', ['desk', 'book', 'ccy', 'notional', 'pnl', 'yield', 'price']);
+  const byDesk = defaultTableLayout('by-desk', 'By desk', [
+    'desk',
+    'book',
+    'ccy',
+    'notional',
+    'pnl',
+    'yield',
+    'price',
+  ]);
   byDesk.rowGroupColumns = ['desk', 'book'];
   byDesk.rowGroupExpansion = { defaultBehavior: 'expanded', exceptions: [] };
   byDesk.aggregations = [
@@ -44,7 +55,14 @@ export function seedConfig(): GridConfig {
 
   cfg.modules.layout = { v: 1, data: { currentLayoutId: 'blotter', layouts: [blotter, byDesk] } };
 
-  const meta = (id: string, name: string) => ({ id, name, enabled: true, readOnly: false, tags: [], source: 'seed' as const });
+  const meta = (id: string, name: string) => ({
+    id,
+    name,
+    enabled: true,
+    readOnly: false,
+    tags: [],
+    source: 'seed' as const,
+  });
   const formatColumns: FormatColumn[] = [
     {
       ...meta('fc-pnl-neg', 'Negative PnL red'),
@@ -53,7 +71,12 @@ export function seedConfig(): GridConfig {
       columnGroupScope: 'both',
       rule: { kind: 'predicates', predicates: [{ predicateId: 'Negative', inputs: [] }], operator: 'AND' },
       style: { foreColor: 'var(--sg-negative)', font: { weight: 'semibold' } },
-      rowScope: { excludeDataRows: false, excludeGroupRows: false, excludeSummaryRows: false, excludeTotalRows: false },
+      rowScope: {
+        excludeDataRows: false,
+        excludeGroupRows: false,
+        excludeSummaryRows: false,
+        excludeTotalRows: false,
+      },
     },
     {
       ...meta('fc-pnl-pos', 'Positive PnL green'),
@@ -105,15 +128,26 @@ export function seedConfig(): GridConfig {
       scope: { kind: 'columns', columnIds: ['rating'] },
       target: 'cell',
       columnGroupScope: 'both',
-      rule: { kind: 'predicates', predicates: [{ predicateId: 'In', inputs: ['BB+', 'BB', 'B'] }], operator: 'AND' },
-      style: { backColor: { light: '#fff3cd', dark: '#4a3b00' }, foreColor: { light: '#7a5a00', dark: '#ffd666' } },
+      rule: {
+        kind: 'predicates',
+        predicates: [{ predicateId: 'In', inputs: ['BB+', 'BB', 'B'] }],
+        operator: 'AND',
+      },
+      style: {
+        backColor: { light: '#fff3cd', dark: '#4a3b00' },
+        foreColor: { light: '#7a5a00', dark: '#ffd666' },
+      },
     },
     {
       ...meta('fc-cancelled', 'Cancelled rows'),
       scope: { kind: 'all' },
       target: 'cell',
       columnGroupScope: 'both',
-      rule: { kind: 'predicates', predicates: [{ predicateId: 'Is', inputs: ['Cancelled'], columnId: 'status' }], operator: 'AND' },
+      rule: {
+        kind: 'predicates',
+        predicates: [{ predicateId: 'Is', inputs: ['Cancelled'], columnId: 'status' }],
+        operator: 'AND',
+      },
       style: { opacity: 0.55, font: { decoration: 'lineThrough' } },
     },
   ];

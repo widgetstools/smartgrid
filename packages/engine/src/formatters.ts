@@ -5,7 +5,10 @@ export interface FormatContext {
   rowData?: Record<string, unknown>;
   locale?: string;
   /** Host-registered custom formatters by id. */
-  customFormatters?: Record<string, (value: unknown, options: Record<string, unknown> | undefined, ctx: FormatContext) => string>;
+  customFormatters?: Record<
+    string,
+    (value: unknown, options: Record<string, unknown> | undefined, ctx: FormatContext) => string
+  >;
 }
 
 export type ValueFormatterFn = (value: unknown, ctx: FormatContext) => string;
@@ -35,13 +38,18 @@ function resolveTemplate(template: string, value: unknown, ctx: FormatContext, d
     if (token === 'column') return ctx.columnHeader;
     const path = token.slice('rowData.'.length).split('.');
     let cur: unknown = ctx.rowData;
-    for (const p of path) cur = cur && typeof cur === 'object' ? (cur as Record<string, unknown>)[p] : undefined;
+    for (const p of path)
+      cur = cur && typeof cur === 'object' ? (cur as Record<string, unknown>)[p] : undefined;
     return cur === undefined || cur === null ? '' : String(cur);
   });
 }
 
 function numberFormatter(f: NumberFormat): ValueFormatterFn {
-  const o: NumberFormat = { ...(f.preset ? NUMBER_PRESET_OPTIONS[f.preset] : {}), ...stripUndefined(f), kind: 'number' };
+  const o: NumberFormat = {
+    ...(f.preset ? NUMBER_PRESET_OPTIONS[f.preset] : {}),
+    ...stripUndefined(f),
+    kind: 'number',
+  };
   const fraction = o.fractionDigits ?? 2;
   return (value, ctx) => {
     if (value === null || value === undefined || value === '') return o.empty === false ? '' : '';
@@ -70,7 +78,10 @@ function numberFormatter(f: NumberFormat): ValueFormatterFn {
     if (o.notation === 'scientific') {
       body = abs.toExponential(fraction);
     } else if (o.notation === 'compact') {
-      body = new Intl.NumberFormat(ctx.locale, { notation: 'compact', maximumFractionDigits: fraction }).format(abs);
+      body = new Intl.NumberFormat(ctx.locale, {
+        notation: 'compact',
+        maximumFractionDigits: fraction,
+      }).format(abs);
     } else {
       body = new Intl.NumberFormat(ctx.locale, {
         minimumFractionDigits: fraction,
@@ -84,7 +95,9 @@ function numberFormatter(f: NumberFormat): ValueFormatterFn {
         const dec = parts.find((p) => p.type === 'decimal')?.value ?? '.';
         body = body
           .split(dec)
-          .map((seg, i) => (i === 0 && o.integerSeparator !== undefined ? seg.split(grp).join(o.integerSeparator) : seg))
+          .map((seg, i) =>
+            i === 0 && o.integerSeparator !== undefined ? seg.split(grp).join(o.integerSeparator) : seg,
+          )
           .join(o.fractionSeparator ?? dec);
       }
     }
@@ -122,7 +135,20 @@ function stringFormatter(f: StringFormat): ValueFormatterFn {
   };
 }
 
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const pad = (n: number, w = 2) => String(n).padStart(w, '0');
 const ordinal = (n: number) => {
@@ -160,8 +186,9 @@ export function formatDatePattern(date: Date, pattern: string): string {
     SSS: () => pad(date.getMilliseconds(), 3),
     a: () => (H < 12 ? 'AM' : 'PM'),
   };
-  return pattern.replace(/'([^']*)'|yyyy|yy|MMMM|MMM|MM|M|dd|do|d|EEEE|EEE|HH|H|hh|h|mm|ss|SSS|a/g, (m, literal?: string) =>
-    literal !== undefined ? literal : (tokens[m]?.() ?? m),
+  return pattern.replace(
+    /'([^']*)'|yyyy|yy|MMMM|MMM|MM|M|dd|do|d|EEEE|EEE|HH|H|hh|h|mm|ss|SSS|a/g,
+    (m, literal?: string) => (literal !== undefined ? literal : (tokens[m]?.() ?? m)),
   );
 }
 
@@ -188,11 +215,21 @@ export function buildValueFormatter(format: DisplayFormat): ValueFormatterFn {
     case 'date':
       return dateFormatter(format);
     case 'template':
-      return (value, ctx) => resolveTemplate(format.template, value, ctx, value === null || value === undefined ? '' : String(value));
+      return (value, ctx) =>
+        resolveTemplate(
+          format.template,
+          value,
+          ctx,
+          value === null || value === undefined ? '' : String(value),
+        );
     case 'custom':
       return (value, ctx) => {
         const fn = ctx.customFormatters?.[format.formatterId];
-        return fn ? fn(value, format.options, ctx) : value === null || value === undefined ? '' : String(value);
+        return fn
+          ? fn(value, format.options, ctx)
+          : value === null || value === undefined
+            ? ''
+            : String(value);
       };
     case 'excel':
     case 'tick':

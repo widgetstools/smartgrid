@@ -3,7 +3,12 @@ import type { GridApi } from 'ag-grid-community';
 import { mulberry32, tick, type Trade } from '../data/blotter.js';
 
 /** Push simulated price updates into the grid via async transactions. */
-export function useTicking(api: GridApi<Trade> | undefined, trades: Trade[], enabled: boolean, intervalMs = 250) {
+export function useTicking(
+  api: GridApi<Trade> | undefined,
+  trades: Trade[],
+  enabled: boolean,
+  intervalMs = 250,
+) {
   const rnd = useRef(mulberry32(7));
   useEffect(() => {
     if (!api || !enabled) return;

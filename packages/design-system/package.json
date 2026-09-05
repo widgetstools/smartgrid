@@ -1,0 +1,79 @@
+{
+  "name": "@smartgrid/design-system",
+  "version": "0.0.0",
+  "private": true,
+  "description": "SmartGrid design system — tokens, themes (light/dark/os, paper variant, CVD), applyTheme, AG Grid Quartz adapter + density presets, vanilla-TS cell renderers and the market icon set. Single --sg-* CSS variable namespace; framework-agnostic except the optional ./react subpath.",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./css": "./dist/css/index.css",
+    "./css/*": "./dist/css/*",
+    "./ag-grid": {
+      "types": "./dist/adapters/agGrid.d.ts",
+      "import": "./dist/adapters/agGrid.js"
+    },
+    "./cell-renderers": {
+      "types": "./dist/cell-renderers.d.ts",
+      "import": "./dist/cell-renderers.js"
+    },
+    "./icons": {
+      "types": "./dist/icons/index.d.ts",
+      "import": "./dist/icons/index.js"
+    },
+    "./icons/svg/*": "./src/icons/svg/*",
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.js"
+    },
+    "./tokens.json": "./dist/tokens/tokens.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src/css",
+    "src/icons/svg",
+    "src/tokens/tokens.json"
+  ],
+  "scripts": {
+    "build": "rimraf dist && tsc -b && node scripts/copy-css.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check:tokens": "node scripts/check-tokens.mjs",
+    "generate:icons": "node scripts/generate-icons.mjs",
+    "check:icons": "node scripts/generate-icons.mjs --check"
+  },
+  "peerDependencies": {
+    "ag-grid-community": "^36.1.0",
+    "lucide-react": "^1.41.0",
+    "react": "^19.2.0"
+  },
+  "peerDependenciesMeta": {
+    "lucide-react": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@testing-library/react": "16.3.3",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "ag-grid-community": "36.1.0",
+    "jsdom": "30.0.1",
+    "lucide-react": "1.41.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "vitest": "5.0.0"
+  }
+}

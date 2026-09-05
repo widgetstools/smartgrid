@@ -1,0 +1,16 @@
+/* ============================================================================
+   @smartgrid/design-system/css — the one stylesheet to import.
+   Order matters: source tokens → shadcn aliases → Tailwind theme → base →
+   scrollbar → AG Grid chrome. `@import` statements must precede all other
+   rules (PostCSS/Vite/Tailwind requirement), which is why this file contains
+   nothing else.
+
+   Fonts (Inter, JetBrains Mono) are NOT loaded here — apps self-host or load
+   them via Google Fonts (the AG Grid adapter requests `googleFont` params).
+   ============================================================================ */
+@import './tokens.css';
+@import './shadcn.css';
+@import './tailwind-theme.css';
+@import './base.css';
+@import './scrollbar.css';
+@import './ag-grid.css';

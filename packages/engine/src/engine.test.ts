@@ -1,17 +1,62 @@
 import { describe, expect, it } from 'vitest';
 import type { CellClassParams, ColDef, ValueFormatterParams } from 'ag-grid-community';
-import { createGridConfig, defaultTableLayout, type ColumnInfo, type TypedGridConfig } from '@smartgrid/schema';
+import {
+  createGridConfig,
+  defaultTableLayout,
+  type ColumnInfo,
+  type TypedGridConfig,
+} from '@smartgrid/schema';
 import { buildGrid } from './build.js';
 import { buildValueFormatter, formatDatePattern } from './formatters.js';
 import { buildStylesheet } from './styles.js';
 
 const columns: ColumnInfo[] = [
-  { id: 'desk', header: 'Desk', dataType: 'text', columnTypes: [], sampleValues: [], editable: false, isPrimaryKey: false, isSpecial: false },
-  { id: 'pnl', header: 'PnL', dataType: 'number', columnTypes: [], sampleValues: [], editable: false, isPrimaryKey: false, isSpecial: false },
-  { id: 'notional', header: 'Notional', dataType: 'number', columnTypes: [], sampleValues: [], editable: false, isPrimaryKey: false, isSpecial: false },
-  { id: 'trade', header: 'Trade date', dataType: 'date', columnTypes: [], sampleValues: [], editable: false, isPrimaryKey: false, isSpecial: false },
+  {
+    id: 'desk',
+    header: 'Desk',
+    dataType: 'text',
+    columnTypes: [],
+    sampleValues: [],
+    editable: false,
+    isPrimaryKey: false,
+    isSpecial: false,
+  },
+  {
+    id: 'pnl',
+    header: 'PnL',
+    dataType: 'number',
+    columnTypes: [],
+    sampleValues: [],
+    editable: false,
+    isPrimaryKey: false,
+    isSpecial: false,
+  },
+  {
+    id: 'notional',
+    header: 'Notional',
+    dataType: 'number',
+    columnTypes: [],
+    sampleValues: [],
+    editable: false,
+    isPrimaryKey: false,
+    isSpecial: false,
+  },
+  {
+    id: 'trade',
+    header: 'Trade date',
+    dataType: 'date',
+    columnTypes: [],
+    sampleValues: [],
+    editable: false,
+    isPrimaryKey: false,
+    isSpecial: false,
+  },
 ];
-const baseDefs: ColDef[] = columns.map((c) => ({ field: c.id, headerName: c.header, cellDataType: c.dataType }));
+const baseDefs: ColDef[] = columns.map((c) => ({
+  field: c.id,
+  headerName: c.header,
+  cellDataType: c.dataType,
+}));
 
 function config(): TypedGridConfig {
   const cfg = createGridConfig('g');
@@ -41,9 +86,18 @@ function config(): TypedGridConfig {
           scope: { kind: 'dataTypes', dataTypes: ['number'], columnIds: [] },
           target: 'cell',
           columnGroupScope: 'both',
-          rule: { kind: 'predicates', predicates: [{ predicateId: 'Negative', inputs: [] }], operator: 'AND' },
+          rule: {
+            kind: 'predicates',
+            predicates: [{ predicateId: 'Negative', inputs: [] }],
+            operator: 'AND',
+          },
           style: { foreColor: { light: '#b00', dark: '#f66' }, font: { weight: 'bold' } },
-          rowScope: { excludeDataRows: false, excludeGroupRows: true, excludeSummaryRows: false, excludeTotalRows: false },
+          rowScope: {
+            excludeDataRows: false,
+            excludeGroupRows: true,
+            excludeSummaryRows: false,
+            excludeTotalRows: false,
+          },
         },
         {
           id: 'money',
@@ -69,12 +123,24 @@ describe('buildGrid layout', () => {
     const defs = out.columnDefs as ColDef[];
     expect(defs.map((d) => d.field)).toEqual(['pnl', 'desk', 'notional', 'trade']);
     const pnl = defs[0]!;
-    expect(pnl).toMatchObject({ width: 120, resizable: false, sort: 'desc', sortIndex: 0, headerName: 'P&L', aggFunc: 'sum', hide: false });
+    expect(pnl).toMatchObject({
+      width: 120,
+      resizable: false,
+      sort: 'desc',
+      sortIndex: 0,
+      headerName: 'P&L',
+      aggFunc: 'sum',
+      hide: false,
+    });
     const desk = defs[1]!;
     expect(desk).toMatchObject({ pinned: 'left', rowGroup: true, rowGroupIndex: 0, hide: true });
     expect(defs[2]!.hide).toBe(true);
     expect(typeof defs[2]!.aggFunc).toBe('function');
-    expect(out.gridOptions).toMatchObject({ groupDisplayType: 'singleColumn', suppressAggFuncInHeader: true, pivotMode: false });
+    expect(out.gridOptions).toMatchObject({
+      groupDisplayType: 'singleColumn',
+      suppressAggFuncInHeader: true,
+      pivotMode: false,
+    });
     expect(out.warnings).toEqual([]);
   });
 
@@ -84,7 +150,9 @@ describe('buildGrid layout', () => {
     const params = {
       values: [],
       column: { getColId: () => 'notional' },
-      rowNode: { allLeafChildren: [{ data: { notional: 100, pnl: 1 } }, { data: { notional: 200, pnl: 3 } }] },
+      rowNode: {
+        allLeafChildren: [{ data: { notional: 100, pnl: 1 } }, { data: { notional: 200, pnl: 3 } }],
+      },
     };
     expect(wavg(params)).toBeCloseTo(175);
   });
@@ -129,25 +197,53 @@ describe('formatters', () => {
     expect(buildValueFormatter({ kind: 'number', preset: 'K' })(12500, ctx)).toBe('12.5K');
     expect(buildValueFormatter({ kind: 'number', preset: 'Accounting' })(-99.5, ctx)).toBe('(99.50)');
     expect(buildValueFormatter({ kind: 'number', preset: 'BasisPoints' })(0.0125, ctx)).toBe('125.0bp');
-    expect(buildValueFormatter({ kind: 'number', fractionDigits: 0, integerSeparator: '.', zeroDisplay: '-' })(0, ctx)).toBe('-');
-    expect(buildValueFormatter({ kind: 'number', fractionDigits: 0, integerSeparator: '.' })(1234567, ctx)).toBe('1.234.567');
-    expect(buildValueFormatter({ kind: 'number', fractionDigits: 1, rounding: 'floor' })(1.99, ctx)).toBe('1.9');
+    expect(
+      buildValueFormatter({ kind: 'number', fractionDigits: 0, integerSeparator: '.', zeroDisplay: '-' })(
+        0,
+        ctx,
+      ),
+    ).toBe('-');
+    expect(
+      buildValueFormatter({ kind: 'number', fractionDigits: 0, integerSeparator: '.' })(1234567, ctx),
+    ).toBe('1.234.567');
+    expect(buildValueFormatter({ kind: 'number', fractionDigits: 1, rounding: 'floor' })(1.99, ctx)).toBe(
+      '1.9',
+    );
     expect(buildValueFormatter({ kind: 'number', preset: 'Scientific' })(12345, ctx)).toBe('1.23e+4');
-    expect(buildValueFormatter({ kind: 'number', fractionDigits: 2, content: '[value] [rowData.ccy]' })(3, ctx)).toBe('3.00 USD');
+    expect(
+      buildValueFormatter({ kind: 'number', fractionDigits: 2, content: '[value] [rowData.ccy]' })(3, ctx),
+    ).toBe('3.00 USD');
   });
   it('string, date and template', () => {
-    expect(buildValueFormatter({ kind: 'string', case: 'title', prefix: '» ' })('rates desk', ctx)).toBe('» Rates Desk');
-    expect(buildValueFormatter({ kind: 'date', pattern: 'dd-MMM-yyyy HH:mm' })(new Date(2026, 8, 5, 9, 7), ctx)).toBe('05-Sep-2026 09:07');
-    expect(formatDatePattern(new Date(2026, 8, 3, 15, 4, 5), "EEEE, MMMM do yyyy 'at' h:mm a")).toBe('Thursday, September 3rd 2026 at 3:04 PM');
-    expect(buildValueFormatter({ kind: 'template', template: '[column]: [value] ([rowData.ccy])' })(9, ctx)).toBe('Px: 9 (USD)');
+    expect(buildValueFormatter({ kind: 'string', case: 'title', prefix: '» ' })('rates desk', ctx)).toBe(
+      '» Rates Desk',
+    );
+    expect(
+      buildValueFormatter({ kind: 'date', pattern: 'dd-MMM-yyyy HH:mm' })(new Date(2026, 8, 5, 9, 7), ctx),
+    ).toBe('05-Sep-2026 09:07');
+    expect(formatDatePattern(new Date(2026, 8, 3, 15, 4, 5), "EEEE, MMMM do yyyy 'at' h:mm a")).toBe(
+      'Thursday, September 3rd 2026 at 3:04 PM',
+    );
+    expect(
+      buildValueFormatter({ kind: 'template', template: '[column]: [value] ([rowData.ccy])' })(9, ctx),
+    ).toBe('Px: 9 (USD)');
   });
 });
 
 describe('stylesheet', () => {
   it('emits borders, fonts and alignment', () => {
     const css = buildStylesheet([
-      { className: 'x', style: { border: { bottom: { width: 2, style: 'dashed', color: 'red' }, radius: 4 }, alignment: { horizontal: 'right' }, font: { size: 'sm', italic: true } } },
+      {
+        className: 'x',
+        style: {
+          border: { bottom: { width: 2, style: 'dashed', color: 'red' }, radius: 4 },
+          alignment: { horizontal: 'right' },
+          font: { size: 'sm', italic: true },
+        },
+      },
     ]);
-    expect(css).toBe('.ag-root-wrapper .x{border-bottom:2px dashed red;border-radius:4px;font-size:11px;font-style:italic;text-align:right}');
+    expect(css).toBe(
+      '.ag-root-wrapper .x{border-bottom:2px dashed red;border-radius:4px;font-size:11px;font-style:italic;text-align:right}',
+    );
   });
 });

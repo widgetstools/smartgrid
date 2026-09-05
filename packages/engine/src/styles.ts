@@ -4,7 +4,12 @@ export type Theme = 'light' | 'dark';
 
 const FONT_SIZES: Record<string, string> = { xs: '10px', sm: '11px', md: '13px', lg: '15px', xl: '18px' };
 const FONT_WEIGHTS: Record<string, string> = { normal: '400', medium: '500', semibold: '600', bold: '700' };
-const DECORATIONS: Record<string, string> = { none: 'none', underline: 'underline', overline: 'overline', lineThrough: 'line-through' };
+const DECORATIONS: Record<string, string> = {
+  none: 'none',
+  underline: 'underline',
+  overline: 'overline',
+  lineThrough: 'line-through',
+};
 
 export function resolveColor(c: ThemeColor | undefined, theme: Theme): string | undefined {
   if (!c) return undefined;
@@ -33,7 +38,8 @@ function borderDecls(b: Border, theme: Theme): string[] {
 
 function fontDecls(f: FontStyle): string[] {
   const out: string[] = [];
-  if (f.size !== undefined) out.push(`font-size:${typeof f.size === 'number' ? `${f.size}px` : FONT_SIZES[f.size]}`);
+  if (f.size !== undefined)
+    out.push(`font-size:${typeof f.size === 'number' ? `${f.size}px` : FONT_SIZES[f.size]}`);
   if (f.weight) out.push(`font-weight:${FONT_WEIGHTS[f.weight]}`);
   if (f.italic !== undefined) out.push(`font-style:${f.italic ? 'italic' : 'normal'}`);
   if (f.decoration) out.push(`text-decoration:${DECORATIONS[f.decoration]}`);
@@ -82,7 +88,9 @@ export function buildStylesheet(rules: StyleRule[], scope = '.ag-root-wrapper'):
     const themed =
       isThemed(style.foreColor) ||
       isThemed(style.backColor) ||
-      [style.border?.top, style.border?.right, style.border?.bottom, style.border?.left].some((s) => isThemed(s?.color));
+      [style.border?.top, style.border?.right, style.border?.bottom, style.border?.left].some((s) =>
+        isThemed(s?.color),
+      );
     const light = styleToDeclarations(style, 'light');
     if (light.length) parts.push(`${scope} .${className}{${light.join(';')}}`);
     if (themed) {
