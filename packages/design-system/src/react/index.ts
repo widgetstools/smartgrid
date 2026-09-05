@@ -8,3 +8,8 @@
  */
 export { DynamicIcon, type DynamicIconProps } from './DynamicIcon';
 export type { LucideIcon, LucideProps } from 'lucide-react';
+export {
+  StyledColumnRenderer,
+  styledColumnComponents,
+  type StyledColumnRendererProps,
+} from './StyledColumnRenderer';

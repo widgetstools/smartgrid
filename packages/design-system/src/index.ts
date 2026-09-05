@@ -99,3 +99,6 @@ export {
   type IconCategory,
   type IconMeta,
 } from './icons/index';
+
+// Styled-column helpers shared with the engine (pure; the React renderer lives under `./react`).
+export * from './styledColumn';

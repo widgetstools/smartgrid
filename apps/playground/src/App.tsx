@@ -1,13 +1,26 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { ColumnInfo } from '@smartgrid/schema';
 import type { GridApi } from 'ag-grid-community';
-import { Moon, Sun, Monitor, RotateCcw, Undo2, Redo2, Play, Pause, SlidersHorizontal } from 'lucide-react';
+import {
+  Bell,
+  Moon,
+  Sun,
+  Monitor,
+  RotateCcw,
+  Undo2,
+  Redo2,
+  Play,
+  Pause,
+  SlidersHorizontal,
+} from 'lucide-react';
 import { sgGridTheme } from '@smartgrid/design-system/ag-grid';
 import { EditorContextProvider } from '@smartgrid/editors';
-import { Button, ThemeProvider, cn, useTheme } from '@smartgrid/ui';
+import { Button, ThemeProvider, Toaster, cn, useTheme } from '@smartgrid/ui';
 import { BLOTTER_COLUMN_DEFS, describeColumns, generateTrades, type Trade } from './data/blotter.js';
 import { GRID_ID, seedConfig } from './data/seedConfig.js';
 import { useConfigStore } from './grid/useConfigStore.js';
 import { useEditorContextValue } from './grid/editorContext.js';
+import { useGridRuntime } from './grid/useGridRuntime.js';
 import { SmartGridView } from './grid/SmartGridView.js';
 import { useTicking } from './grid/useTicking.js';
 import { Customizer } from './pages/Customizer.js';
@@ -51,8 +64,14 @@ function Playground() {
   const [api, setApi] = useState<GridApi<Trade>>();
   const [ticking, setTicking] = useState(true);
   const [warnings, setWarnings] = useState<string[]>([]);
-  useTicking(api, trades, ticking && route !== 'gallery');
-  const editorCtx = useEditorContextValue(columns, trades, resolvedTheme === 'dark' ? 'dark' : 'light');
+  const [gridColumns, setGridColumns] = useState<ColumnInfo[]>(columns);
+  const { runtime, alerts, clearAlerts } = useGridRuntime(
+    api as GridApi<Record<string, unknown>> | undefined,
+    trades as unknown as Record<string, unknown>[],
+    (t) => String(t['tradeId']),
+  );
+  useTicking(api, trades, ticking && route !== 'gallery', runtime);
+  const editorCtx = useEditorContextValue(gridColumns, trades, resolvedTheme === 'dark' ? 'dark' : 'light');
 
   const layouts = config?.modules.layout?.data.layouts ?? [];
   const currentLayoutId = config?.modules.layout?.data.currentLayoutId;
@@ -106,6 +125,20 @@ function Playground() {
               rev {config?.revision ?? '–'}
               {lastEntry ? ` · ${lastEntry.origin}` : ''}
             </span>
+            <Button
+              size="sm"
+              variant="ghost"
+              title={alerts.length ? `${alerts.length} alerts (click to clear)` : 'No alerts'}
+              className="relative"
+              onClick={clearAlerts}
+            >
+              <Bell className="size-4" />
+              {alerts.length > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 rounded-full bg-destructive px-1 text-2xs leading-4 text-destructive-foreground">
+                  {alerts.length}
+                </span>
+              )}
+            </Button>
             <Button size="sm" variant="ghost" title="Undo" onClick={() => void store.undo()}>
               <Undo2 className="size-4" />
             </Button>
@@ -157,8 +190,10 @@ function Playground() {
                   columns={columns}
                   rowData={trades}
                   theme={sgGridTheme}
+                  runtime={runtime}
                   onGridReady={setApi}
                   onWarnings={setWarnings}
+                  onColumns={setGridColumns}
                 />
               </div>
               {route === 'customizer' && (
@@ -169,6 +204,7 @@ function Playground() {
             <div className="text-muted-foreground p-6 text-sm">Loading config…</div>
           )}
         </main>
+        <Toaster />
       </div>
     </EditorContextProvider>
   );

@@ -5,9 +5,20 @@
  * revision log the assistant writes to. The "Assistant" tab mocks a proposal
  * card to show the same editors inside a PatchDiffCard.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { compare, type Operation } from 'fast-json-patch';
-import type { FormatColumn, Layout, TypedGridConfig } from '@smartgrid/schema';
+import {
+  Alert,
+  CalculatedColumn,
+  FlashingCell,
+  NamedQuery,
+  QuickSearch,
+  StyledColumn,
+  moduleJsonSchema,
+  type FormatColumn,
+  type Layout,
+  type TypedGridConfig,
+} from '@smartgrid/schema';
 import type { ConfigStore } from '@smartgrid/store';
 import {
   ObjectList,
@@ -25,8 +36,12 @@ import {
   defaultFormatColumn,
   defaultLayout,
   type FormatColumnFormProps,
+  SchemaForm,
+  propertiesOf,
 } from '@smartgrid/forms';
-import { Button, ScrollArea, Tabs, TabsContent, TabsList, TabsTrigger } from '@smartgrid/ui';
+import { Button, ScrollArea, Tabs, TabsContent } from '@smartgrid/ui';
+import { ModuleObjectsTab } from './ModuleObjectsTab.js';
+import { useDebouncedDraft } from './useDebouncedDraft.js';
 
 export interface CustomizerProps {
   store: ConfigStore;
@@ -56,63 +71,20 @@ function describeScope(fc: FormatColumn, headerOf: (id: string) => string): stri
   }
 }
 
-/**
- * Keeps a local draft of an object while the user types and commits one
- * JSON Patch per pause (default 400 ms) instead of one per keystroke. When
- * the store echoes our own commit the draft is kept (newer keystrokes may
- * already be pending); any other store change (undo, assistant, another
- * editor) discards the draft. Pending edits are flushed on unmount.
- */
-function useDebouncedDraft<T>(current: T | undefined, commit: (prev: T, next: T) => void, delay = 400) {
-  const [draft, setDraft] = useState<T | undefined>();
-  const [seen, setSeen] = useState(current);
-  const [committed, setCommitted] = useState<string | undefined>(undefined);
-  const [hasPending, setHasPending] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const pending = useRef<{ prev: T; next: T } | undefined>(undefined);
-  if (current !== seen) {
-    setSeen(current);
-    const own = committed !== undefined && JSON.stringify(current) === committed;
-    if (!own || !hasPending) setDraft(undefined);
-    if (!own) setHasPending(false);
-  }
-  // Ref bookkeeping stays out of render: an external change cancels pending edits.
-  useEffect(() => {
-    if (hasPending) return;
-    pending.current = undefined;
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = undefined;
-  }, [hasPending]);
-  const flush = () => {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = undefined;
-    const p = pending.current;
-    pending.current = undefined;
-    setHasPending(false);
-    if (p) {
-      setCommitted(JSON.stringify(p.next));
-      commit(p.prev, p.next);
-    }
-  };
-  const update = (next: T) => {
-    const base = pending.current?.prev ?? (draft !== undefined ? seen : current);
-    if (base === undefined) return;
-    setDraft(next);
-    pending.current = { prev: base, next };
-    setHasPending(true);
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(flush, delay);
-  };
-  const flushRef = useRef(flush);
-  useEffect(() => {
-    flushRef.current = flush;
-  });
-  useEffect(() => () => flushRef.current(), []);
-  return [draft ?? current, update, flush] as const;
-}
+const TABS = [
+  ['formats', 'Formats'],
+  ['layouts', 'Layouts'],
+  ['calculated', 'Calculated'],
+  ['styled', 'Styled'],
+  ['flashing', 'Flashing'],
+  ['alerts', 'Alerts'],
+  ['queries', 'Queries'],
+  ['assistant', 'Assistant'],
+] as const;
 
 export function Customizer({ store, config, onClose }: CustomizerProps) {
   const ctx = useEditorContext();
+  const [tab, setTab] = useState<string>('formats');
   const headerOf = (id: string) => ctx.columns.find((c) => c.id === id)?.header ?? id;
   const formatColumns = config.modules.formatting?.data.formatColumns ?? [];
   const layouts = config.modules.layout?.data.layouts ?? [];
@@ -151,12 +123,22 @@ export function Customizer({ store, config, onClose }: CustomizerProps) {
           </Button>
         )}
       </div>
-      <Tabs defaultValue="formats" className="flex min-h-0 flex-1 flex-col">
-        <TabsList className="mx-3 mt-2 grid w-auto grid-cols-3">
-          <TabsTrigger value="formats">Formats</TabsTrigger>
-          <TabsTrigger value="layouts">Layouts</TabsTrigger>
-          <TabsTrigger value="assistant">Assistant</TabsTrigger>
-        </TabsList>
+      <Tabs value={tab} onValueChange={setTab} className="flex min-h-0 flex-1 flex-col">
+        <div className="mx-3 mt-2 flex flex-wrap gap-1" role="tablist" aria-label="Modules">
+          {TABS.map(([id, label]) => (
+            <Button
+              key={id}
+              role="tab"
+              aria-selected={tab === id}
+              size="sm"
+              variant={tab === id ? 'secondary' : 'ghost'}
+              className="h-7 px-2 text-xs"
+              onClick={() => setTab(id)}
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
 
         <TabsContent value="formats" className="m-0 flex min-h-0 flex-1 flex-col">
           <ScrollArea className="min-h-0 flex-1">
@@ -252,6 +234,147 @@ export function Customizer({ store, config, onClose }: CustomizerProps) {
           </ScrollArea>
         </TabsContent>
 
+        <TabsContent value="calculated" className="m-0 flex min-h-0 flex-1 flex-col">
+          <ScrollArea className="min-h-0 flex-1">
+            <ModuleObjectsTab
+              store={store}
+              config={config}
+              moduleId="calculatedColumns"
+              listKey="calculatedColumns"
+              itemSchema={CalculatedColumn}
+              items={config.modules.calculatedColumns?.data.calculatedColumns ?? []}
+              summarize={(c) => ({
+                title: c.name,
+                subtitle: c.expression.expression,
+                badges: [c.expression.kind, c.dataType],
+              })}
+              create={() =>
+                CalculatedColumn.parse({
+                  id: uid('cc'),
+                  name: 'New column',
+                  columnId: `calc_${Date.now().toString(36)}`,
+                  expression: { kind: 'scalar', expression: '[pnl] * 2' },
+                })
+              }
+              addLabel="Add calculated column"
+              emptyText="No calculated columns."
+            />
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="styled" className="m-0 flex min-h-0 flex-1 flex-col">
+          <ScrollArea className="min-h-0 flex-1">
+            <ModuleObjectsTab
+              store={store}
+              config={config}
+              moduleId="styledColumns"
+              listKey="styledColumns"
+              itemSchema={StyledColumn}
+              items={config.modules.styledColumns?.data.styledColumns ?? []}
+              summarize={(sc) => ({
+                title: sc.name,
+                subtitle: headerOf(sc.columnId),
+                badges: [sc.style.kind],
+              })}
+              create={() =>
+                StyledColumn.parse({
+                  id: uid('sc'),
+                  name: 'New styled column',
+                  columnId:
+                    ctx.columns.find((c) => c.dataType === 'number')?.id ?? ctx.columns[0]?.id ?? 'pnl',
+                  style: { kind: 'rating', max: 5 },
+                })
+              }
+              addLabel="Add styled column"
+              emptyText="No styled columns."
+            />
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="flashing" className="m-0 flex min-h-0 flex-1 flex-col">
+          <ScrollArea className="min-h-0 flex-1">
+            <ModuleObjectsTab
+              store={store}
+              config={config}
+              moduleId="flashing"
+              listKey="flashingCells"
+              itemSchema={FlashingCell}
+              items={config.modules.flashing?.data.flashingCells ?? []}
+              summarize={(f) => ({
+                title: f.name,
+                subtitle: describeScope(f as unknown as FormatColumn, headerOf),
+                badges: [f.target, String(f.duration)],
+              })}
+              create={() =>
+                FlashingCell.parse({
+                  id: uid('flash'),
+                  name: 'New flash',
+                  scope: { kind: 'all' },
+                  duration: 500,
+                })
+              }
+              addLabel="Add flashing cell"
+              emptyText="No flashing cells."
+            />
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="alerts" className="m-0 flex min-h-0 flex-1 flex-col">
+          <ScrollArea className="min-h-0 flex-1">
+            <ModuleObjectsTab
+              store={store}
+              config={config}
+              moduleId="alerts"
+              listKey="alerts"
+              itemSchema={Alert}
+              items={config.modules.alerts?.data.alerts ?? []}
+              summarize={(a) => ({
+                title: a.name,
+                subtitle: a.rule
+                  ? a.rule.kind === 'predicates'
+                    ? 'conditions'
+                    : a.rule.expression
+                  : 'scheduled',
+                badges: [a.messageType, a.rule?.kind ?? 'schedule'],
+              })}
+              create={() =>
+                Alert.parse({
+                  id: uid('alert'),
+                  name: 'New alert',
+                  scope: { kind: 'all' },
+                  rule: { kind: 'expression', expression: 'ANY_CHANGE([pnl])' },
+                })
+              }
+              addLabel="Add alert"
+              emptyText="No alerts."
+            />
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="queries" className="m-0 flex min-h-0 flex-1 flex-col">
+          <ScrollArea className="min-h-0 flex-1">
+            <ModuleObjectsTab
+              store={store}
+              config={config}
+              moduleId="queries"
+              listKey="namedQueries"
+              itemSchema={NamedQuery}
+              items={config.modules.queries?.data.namedQueries ?? []}
+              summarize={(q) => ({ title: q.name, subtitle: q.expression, badges: ['QUERY'] })}
+              create={() =>
+                NamedQuery.parse({
+                  id: uid('nq'),
+                  name: `Query${Date.now().toString(36)}`,
+                  expression: '[pnl] > 0',
+                })
+              }
+              addLabel="Add named query"
+              emptyText="No named queries."
+              header={<QuickSearchForm store={store} config={config} />}
+            />
+          </ScrollArea>
+        </TabsContent>
+
         <TabsContent value="assistant" className="m-0 flex min-h-0 flex-1 flex-col">
           <ScrollArea className="min-h-0 flex-1">
             <AssistantMock store={store} config={config} />
@@ -327,6 +450,27 @@ function AssistantMock({ store, config }: { store: ConfigStore; config: TypedGri
         warnings={[
           'This is a canned proposal; M3 wires the local LLM (OpenAI-compatible, port 3000) behind the same card.',
         ]}
+      />
+    </div>
+  );
+}
+
+function QuickSearchForm({ store, config }: { store: ConfigStore; config: TypedGridConfig }) {
+  const node = useMemo(() => propertiesOf(moduleJsonSchema('queries'))['quickSearch'] ?? {}, []);
+  const stored = config.modules.queries?.data.quickSearch;
+  const [draft, update] = useDebouncedDraft<QuickSearch>(stored, (prev, next) => {
+    const ops = prefixed('/modules/queries/data/quickSearch', compare(prev, next));
+    if (ops.length) void store.apply(ops, { origin: 'form' });
+  });
+  if (!draft) return null;
+  return (
+    <div className="rounded-md border border-border p-2">
+      <SchemaForm<QuickSearch>
+        jsonSchema={node}
+        schema={QuickSearch}
+        value={draft}
+        onChange={(next) => next && update(next)}
+        label="Quick search"
       />
     </div>
   );

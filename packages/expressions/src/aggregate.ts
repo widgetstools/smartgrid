@@ -59,6 +59,8 @@ export interface GroupResult {
 export interface AggregatedProgram {
   /** Value for one row (calculated column); GROUP_BY groups relative to that row. */
   evaluateRow(target: RowContext, rows: readonly RowContext[]): Value;
+  /** Values for every row in one session (group caches shared), for bulk recomputation. */
+  evaluateRows(rows: readonly RowContext[]): Value[];
   /** Grid-level value, or one per group when GROUP_BY is present. */
   evaluate(rows: readonly RowContext[]): { value: Value; groups?: GroupResult[] };
   /** Columns read anywhere in the expression. */
@@ -214,6 +216,7 @@ export function compileAggregated(
     columns: [...columns],
     groupBy,
     evaluateRow: (target, rows) => run(rows, () => compiled(target)),
+    evaluateRows: (rows) => run(rows, () => rows.map((r) => compiled(r))),
     evaluate: (rows) =>
       run(rows, () => {
         const base = session!.filtered ?? session!.rows;

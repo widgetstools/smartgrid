@@ -166,10 +166,15 @@ Each milestone ends with a demo in `apps/playground` and green CI.
 - Engine: boolean expression rules compile to closures in `cellClassRules`; invalid expressions warn and are skipped. Playground seed carries an expression-driven format column.
 - Not done: relative-change functions only see a change when the host sets `RowContext.change` (engine wiring lands with flashing/alerts in M2); infix `[col] IN ('a','b')` is not parsed (use `IN([col], 'a', 'b')`).
 
-### M2 — Engine core (week 4–6)
-- `packages/engine`: `Module` contract (from stern-bak, kept), pipeline, `RowChangeBus`, validator.
-- Modules: `layout` (table + pivot kinds, weighted avg, `only`, row summaries, selection), `filters` (predicate filters, grid filter, named queries, quick search highlight), `formatting`, `styledColumns` (8), `flashing`, `calculatedColumns` (with dependency graph).
-- **Demo:** the config document drives every visual on the grid; conditional styles scoped by data type; badges with predicate rules.
+### M2 — Engine core (week 4–6) — **done**
+- Schema: five new modules — `calculatedColumns`, `styledColumns` (gradient, percent bar, badge, sparkline, bullet chart, rating, range bar, icon), `flashing`, `alerts`, `queries` (named queries + quick search) — all with `x-editor` hints, so the generic form renderer and the assistant's tool schemas cover them with no bespoke UI.
+- Engine: `EngineModule` contract over a shared `BuildDraft` (defs, grid options, style rules in precedence order, row filters); modules run in order calculated → layout → formatting → styled → flashing → alerts → queries. `GridRuntime` is the live half: hosts push `cellsChanged`/`rowsChanged` and drive `tick(now)`; modules register parts and emit `flash`, `alert`, `highlightEnd`, `calculatedColumnsChanged` events; column stats are cached per build.
+- Calculated columns: scalar `valueGetter`s, aggregated columns recomputed from the host row set when a dependency changes, dependency graph with cycle detection and topological validation of chains.
+- Styled columns: framework-agnostic renderer params (endpoint resolution against column stats, badge rule matching) consumed by one React renderer in `design-system/react` covering all eight kinds without ag-charts.
+- Flashing: direction-aware cell/row flashes with per-definition or default styles and durations (or `always`), driven through `cellClassRules` and refresh events.
+- Alerts: data-change (predicates/expressions/relative change), aggregated (fires on false→true transitions, per group), observable (time windows via `ObservableWatcher`), scheduled (5-field cron + one-off); message templates; toast/status/console/highlight/jump behaviours resolved into one `AlertEvent`.
+- Queries: column filters and the grid filter from the current layout plus quick search combine into AG Grid's external filter; quick search highlight class; `QUERY('Name')` resolves against the document's named queries.
+- Playground: host adapter (`useGridRuntime`) mirrors runtime events onto the grid API and toasts; the customizer has a generic tab per module driven only by the module's JSON Schema; the seed carries calculated, styled, flashing, alert and query objects.
 
 ### M3 — Assistant (week 6–8)
 - `packages/assistant`: AI SDK core + `createOpenAICompatible({ baseURL: 'http://localhost:3000/v1' })` against the local Copilot server, tool set (incl. `request_input` for pickers), agent loop with validator-driven self-correction, patch log, health check.
@@ -214,4 +219,4 @@ Later: REST adapter + gateway, team sharing, FDC3 intents, interop plugins, serv
 4. ~~Build `packages/editors` atoms + registry + gallery page (M0.5).~~ done, with `packages/forms` and the customizer drawer
 5. Probe the local Copilot server: confirm endpoint path, streaming, and tool-call format, and record it in `packages/assistant/README.md`.
 6. ~~M1: tokenizer/parser/evaluator for AdaptableQL in `packages/expressions`; swap the `ExpressionEditor` textarea for CodeMirror with completions and positioned diagnostics (same props).~~ done
-7. M2: expression rules in the engine (currently skipped with a warning), flashing, calculated columns, alerts.
+7. ~~M2: expression rules in the engine, flashing, calculated columns, alerts.~~ done

@@ -21,6 +21,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@smartgrid/design-system": "0.0.0",
     "@smartgrid/expressions": "0.0.0",
     "@smartgrid/schema": "0.0.0"
   },

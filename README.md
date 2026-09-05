@@ -17,7 +17,7 @@ apps/
 packages/
   schema/          Zod schemas per module, JSON Schema export with x-editor hints
   expressions/     AdaptableQL-compatible expression language
-  engine/          Module contract, pipeline, validator, runtime behaviours (framework-agnostic)
+  engine/          Module pipeline (layout, formatting, calculated/styled columns, flashing, alerts, queries) + GridRuntime
   store/           StorageAdapter, IndexedDB + memory adapters, patch log, profiles
   editors/         Host-agnostic editing components + EditorRegistry
   forms/           Schema-driven form renderer (fallback customizer)

@@ -162,6 +162,7 @@ describe('aggregated evaluation', () => {
     expect(c.evaluateRow(rows[1]!, rows)).toBe(-50); // date 1
     expect(c.evaluateRow(rows[2]!, rows)).toBe(150); // date 2
     expect(c.evaluateRow(rows[0]!, rows)).toBe(250); // date 3
+    expect(c.evaluateRows(rows)).toEqual([250, -50, 150, 250]);
     const q = compileAggregatedSource('QUANT([price], 4)', env);
     expect(rows.map((r) => q.evaluateRow(r, rows))).toEqual([2, 4, 3, 1]);
     expect(compileAggregatedSource('QUARTILE([price])', env).evaluateRow(rows[1]!, rows)).toBe(4);

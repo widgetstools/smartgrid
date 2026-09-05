@@ -21,7 +21,11 @@ export const MODULES = {
     schema: CalculatedColumnsModule,
     title: 'Calculated columns',
   },
-  styledColumns: { version: STYLED_COLUMNS_MODULE_VERSION, schema: StyledColumnsModule, title: 'Styled columns' },
+  styledColumns: {
+    version: STYLED_COLUMNS_MODULE_VERSION,
+    schema: StyledColumnsModule,
+    title: 'Styled columns',
+  },
   flashing: { version: FLASHING_MODULE_VERSION, schema: FlashingModule, title: 'Flashing cells' },
   alerts: { version: ALERTS_MODULE_VERSION, schema: AlertsModule, title: 'Alerts' },
   queries: { version: QUERIES_MODULE_VERSION, schema: QueriesModule, title: 'Queries' },
