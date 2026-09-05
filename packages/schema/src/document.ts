@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { LayoutModule, LAYOUT_MODULE_VERSION } from './modules/layout.js';
 import { FormattingModule, FORMATTING_MODULE_VERSION } from './modules/formatting.js';
+import { CalculatedColumnsModule, CALCULATED_COLUMNS_MODULE_VERSION } from './modules/calculatedColumns.js';
+import { StyledColumnsModule, STYLED_COLUMNS_MODULE_VERSION } from './modules/styledColumns.js';
+import { FlashingModule, FLASHING_MODULE_VERSION } from './modules/flashing.js';
+import { AlertsModule, ALERTS_MODULE_VERSION } from './modules/alerts.js';
+import { QueriesModule, QUERIES_MODULE_VERSION } from './modules/queries.js';
 
 /**
  * Registry of config modules. Each module owns one slice of the document,
@@ -11,6 +16,15 @@ import { FormattingModule, FORMATTING_MODULE_VERSION } from './modules/formattin
 export const MODULES = {
   layout: { version: LAYOUT_MODULE_VERSION, schema: LayoutModule, title: 'Layout' },
   formatting: { version: FORMATTING_MODULE_VERSION, schema: FormattingModule, title: 'Formatting' },
+  calculatedColumns: {
+    version: CALCULATED_COLUMNS_MODULE_VERSION,
+    schema: CalculatedColumnsModule,
+    title: 'Calculated columns',
+  },
+  styledColumns: { version: STYLED_COLUMNS_MODULE_VERSION, schema: StyledColumnsModule, title: 'Styled columns' },
+  flashing: { version: FLASHING_MODULE_VERSION, schema: FlashingModule, title: 'Flashing cells' },
+  alerts: { version: ALERTS_MODULE_VERSION, schema: AlertsModule, title: 'Alerts' },
+  queries: { version: QUERIES_MODULE_VERSION, schema: QueriesModule, title: 'Queries' },
 } as const;
 
 export type ModuleId = keyof typeof MODULES;

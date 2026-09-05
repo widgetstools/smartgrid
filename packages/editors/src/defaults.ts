@@ -54,6 +54,8 @@ export const STRUCTURAL_HINTS: readonly EditorHint[] = [
   'nudge',
   'shortcut',
   'cellRendererConfig',
+  'namedQuery',
+  'quickSearch',
 ];
 
 function entry<T>(hint: EditorHint, component: EditorComponent<T>, title: string): EditorRegistration {

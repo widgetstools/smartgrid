@@ -91,3 +91,103 @@ describe('FormatColumn', () => {
     expect(FormattingModule.parse({})).toEqual({ formatColumns: [], editStateStyles: {} });
   });
 });
+
+describe('M2 modules', () => {
+  it('parses empty module defaults and exposes them in MODULES', async () => {
+    const { MODULES, MODULE_IDS, createGridConfig } = await import('../document.js');
+    expect(MODULE_IDS).toEqual([
+      'layout',
+      'formatting',
+      'calculatedColumns',
+      'styledColumns',
+      'flashing',
+      'alerts',
+      'queries',
+    ]);
+    const cfg = createGridConfig('g');
+    expect(cfg.modules.calculatedColumns?.data.calculatedColumns).toEqual([]);
+    expect(cfg.modules.flashing?.data.defaults.duration).toBe(500);
+    expect(cfg.modules.alerts?.data.options.highlightDuration).toBe(2000);
+    expect(cfg.modules.queries?.data.quickSearch.mode).toBe('highlight');
+    for (const id of MODULE_IDS)
+      expect(MODULES[id].schema.safeParse(id === 'layout' ? undefined : {}).success).toBe(id !== 'layout');
+  });
+
+  it('validates calculated, styled, flashing, alert and query objects', async () => {
+    const {
+      CalculatedColumn,
+      StyledColumn,
+      StyledColumnsModule,
+      FlashingCell,
+      Alert,
+      NamedQuery,
+      styledColumnKindsFor,
+    } = await import('./index.js');
+    const meta = { id: 'x', name: 'X' };
+    expect(
+      CalculatedColumn.safeParse({
+        ...meta,
+        columnId: 'pnlPct',
+        expression: { kind: 'scalar', expression: '[pnl] / [notional]' },
+      }).success,
+    ).toBe(true);
+    expect(
+      CalculatedColumn.safeParse({
+        ...meta,
+        columnId: 'bad id',
+        expression: { kind: 'scalar', expression: '1' },
+      }).success,
+    ).toBe(false);
+    expect(
+      StyledColumn.safeParse({
+        ...meta,
+        columnId: 'pnl',
+        style: {
+          kind: 'gradient',
+          ranges: [
+            { min: 'Col-Min', max: 0, color: 'red' },
+            { min: 0, max: 'Col-Max', color: 'green' },
+          ],
+        },
+      }).success,
+    ).toBe(true);
+    expect(
+      StyledColumn.safeParse({ ...meta, columnId: 'r', style: { kind: 'rating', max: 5 } }).success,
+    ).toBe(true);
+    expect(
+      StyledColumn.safeParse({
+        ...meta,
+        columnId: 'r',
+        style: { kind: 'rangeBar', min: { columnId: 'lo' }, max: { columnId: 'hi' } },
+      }).success,
+    ).toBe(true);
+    expect(
+      StyledColumnsModule.safeParse({
+        styledColumns: [
+          { ...meta, columnId: 'a', style: { kind: 'rating' } },
+          { ...meta, id: 'y', columnId: 'a', style: { kind: 'rating' } },
+        ],
+      }).success,
+    ).toBe(false);
+    expect(styledColumnKindsFor('number')).toContain('gradient');
+    expect(styledColumnKindsFor('text')).toEqual(['badge', 'icon']);
+    expect(FlashingCell.safeParse({ ...meta, scope: { kind: 'all' } }).success).toBe(true);
+    expect(
+      Alert.safeParse({ ...meta, rule: { kind: 'aggregated', expression: "SUM([pnl]) > '5M'" } }).success,
+    ).toBe(true);
+    expect(Alert.safeParse({ ...meta }).success).toBe(false);
+    expect(Alert.safeParse({ ...meta, schedule: { kind: 'cron', cron: '0 9 * * 1-5' } }).success).toBe(true);
+    expect(NamedQuery.safeParse({ ...meta, expression: '[pnl] < 0' }).success).toBe(true);
+  });
+
+  it('every new module fragment carries x-editor hints for its objects', async () => {
+    const { moduleJsonSchema, collectEditorHints } = await import('../jsonSchema.js');
+    const hints = (id: 'calculatedColumns' | 'styledColumns' | 'flashing' | 'alerts' | 'queries') =>
+      collectEditorHints(moduleJsonSchema(id)).map((h) => h.editor);
+    expect(hints('calculatedColumns')).toContain('calculatedColumn');
+    expect(hints('styledColumns')).toContain('styledColumn');
+    expect(hints('flashing')).toContain('flashing');
+    expect(hints('alerts')).toContain('alert');
+    expect(hints('queries')).toEqual(expect.arrayContaining(['namedQuery', 'quickSearch']));
+  });
+});

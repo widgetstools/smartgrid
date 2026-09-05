@@ -50,6 +50,8 @@ export const EDITOR_HINTS = [
   'nudge',
   'shortcut',
   'cellRendererConfig',
+  'namedQuery',
+  'quickSearch',
   // structural
   'list',
   'object',

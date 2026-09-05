@@ -1,5 +1,37 @@
-// @smartgrid/engine — config document → AG Grid inputs. Framework-agnostic.
-export { buildGrid, type BuildInput, type BuildOutput } from './build.js';
+// @smartgrid/engine — config document → AG Grid inputs + live runtime. Framework-agnostic.
+export { buildGrid, envForConfig, type BuildInput, type BuildOutput } from './build.js';
+export type {
+  ActiveFlash,
+  AlertEvent,
+  BuildContext,
+  BuildDraft,
+  ColumnStats,
+  EngineModule,
+  FlashService,
+  RuntimeEvent,
+  StatsService,
+} from './core/types.js';
+export {
+  compileRule,
+  compileExpressionRule,
+  rowContextFor,
+  ALWAYS,
+  type CompiledRule,
+  type RuleChange,
+  type RuleCompileOptions,
+} from './core/rules.js';
+export { colIdOf, flattenDefs, restoreGroups, kindOf, classFor, appendClass } from './core/defs.js';
+export {
+  GridRuntime,
+  type CellChange,
+  type RowChange,
+  type RuntimeHost,
+  type RuntimePart,
+  type RuntimeListener,
+} from './runtime/runtime.js';
+export { ENGINE_MODULES } from './modules/index.js';
+export { FC_CLASS } from './modules/formatting.js';
+export { applyLayout, gridOptionsFromLayout, aggFuncFor, currentLayout } from './modules/layout.js';
 export {
   buildValueFormatter,
   formatDatePattern,
@@ -8,4 +40,4 @@ export {
   type ValueFormatterFn,
 } from './formatters.js';
 export { buildStylesheet, styleToDeclarations, resolveColor, type StyleRule, type Theme } from './styles.js';
-export { columnsInScope, rowKindAllowed } from './scope.js';
+export { columnsInScope, rowKindAllowed, type RowKind } from './scope.js';
