@@ -78,11 +78,14 @@ export default tseslint.config(
     rules: {
       'no-restricted-imports': restrict({
         group: [
-          '@smartgrid/!(schema|expressions|design-system|ui)',
-          '@smartgrid/!(schema|expressions|design-system|ui)/**',
+          '@smartgrid/!(schema|expressions|engine|design-system|ui)',
+          '@smartgrid/!(schema|expressions|engine|design-system|ui)/**',
+          'ag-grid-community',
+          'ag-grid-enterprise',
+          'ag-grid-react',
         ],
         message:
-          'editors may import schema, expressions, design-system and ui only; never engine, assistant or AG Grid.',
+          'editors may import schema, expressions, engine (pure helpers), design-system and ui only; never assistant, store or AG Grid.',
       }),
     },
   },
