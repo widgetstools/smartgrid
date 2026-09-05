@@ -24,6 +24,8 @@ const MID = ['packages/expressions/**/*.{ts,tsx}', 'packages/store/**/*.{ts,tsx}
 const EDITORS = ['packages/editors/**/*.{ts,tsx}'];
 const ENGINE = ['packages/engine/**/*.{ts,tsx}'];
 const FORMS = ['packages/forms/**/*.{ts,tsx}'];
+const ASSISTANT = ['packages/assistant/**/*.{ts,tsx}'];
+const REACT = ['packages/react/**/*.{ts,tsx}'];
 
 export default tseslint.config(
   {
@@ -104,6 +106,37 @@ export default tseslint.config(
         ],
         message:
           'forms may import schema, expressions, engine, editors, design-system and ui only; never store, assistant or AG Grid.',
+      }),
+    },
+  },
+  {
+    files: ASSISTANT,
+    rules: {
+      'no-restricted-imports': restrict(
+        {
+          group: [
+            '@smartgrid/!(schema|expressions|engine|store)',
+            '@smartgrid/!(schema|expressions|engine|store)/**',
+            'ag-grid-community',
+            'ag-grid-enterprise',
+            'ag-grid-react',
+          ],
+          message:
+            'assistant may import schema, expressions, engine and store only; the UI lives in packages/react.',
+        },
+        {
+          group: ['react', 'react-dom', 'react/**', 'react-dom/**'],
+          message: 'assistant is framework-agnostic.',
+        },
+      ),
+    },
+  },
+  {
+    files: REACT,
+    rules: {
+      'no-restricted-imports': restrict({
+        group: ['ag-grid-community', 'ag-grid-enterprise', 'ag-grid-react'],
+        message: 'react composes the layers below it; the AG Grid binding lives in the host.',
       }),
     },
   },

@@ -2,6 +2,7 @@
 @source '../../../packages/ui/src';
 @source '../../../packages/editors/src';
 @source '../../../packages/forms/src';
+@source '../../../packages/react/src';
 
 html,
 body,

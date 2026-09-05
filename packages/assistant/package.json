@@ -1,0 +1,35 @@
+{
+  "name": "@smartgrid/assistant",
+  "version": "0.0.0",
+  "description": "Model layer, tool set and agent loop that configure the grid from natural language: propose → validate → approve → apply as JSON Patches on the config document",
+  "type": "module",
+  "license": "UNLICENSED",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rimraf dist && tsc -b",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@smartgrid/engine": "0.0.0",
+    "@smartgrid/expressions": "0.0.0",
+    "@smartgrid/schema": "0.0.0",
+    "@smartgrid/store": "0.0.0",
+    "fast-json-patch": "3.1.1"
+  },
+  "devDependencies": {
+    "rimraf": "6.1.3",
+    "typescript": "5.9.3",
+    "vitest": "5.0.0"
+  }
+}

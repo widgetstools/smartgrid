@@ -100,7 +100,7 @@ function Playground() {
       <div className="flex h-full flex-col">
         <header className="flex items-center gap-2 border-b border-border px-3 py-2">
           <span className="font-semibold">SmartGrid</span>
-          <span className="text-muted-foreground text-xs">playground · M0.5</span>
+          <span className="text-muted-foreground text-xs">playground · M3</span>
           <nav className="ml-3 flex items-center gap-0.5">
             {navButton('grid', 'Grid')}
             {navButton('customizer', 'Customizer')}

@@ -21,10 +21,10 @@ packages/
   store/           StorageAdapter, IndexedDB + memory adapters, patch log, profiles
   editors/         Host-agnostic editing components + EditorRegistry
   forms/           Schema-driven form renderer (fallback customizer)
-  assistant/       Model layer, tool set, agent loop
+  assistant/       Model providers (OpenAI-compatible, mock), tool set, validator, session loop
   design-system/   Tokens, themes, AG Grid theme adapter, cell renderers, icons
   ui/              shadcn primitives + grid chrome
-  react/           <SmartGrid>, <AssistantPane>, hooks
+  react/           <AssistantPane>, useAssistant, schema-driven proposal editors
 ```
 
 ## Develop
@@ -36,6 +36,12 @@ npm run test
 npm run dev        # playground on http://localhost:5300
 ```
 
-Playground routes: `#/` grid, `#/customizer` grid + form-driven customizer drawer (format columns, layouts, mock assistant proposal), `#/gallery` every editor in inline/popover/panel modes.
+Playground routes: `#/` grid, `#/customizer` grid + customizer drawer (one form-driven tab per module plus the Assistant tab), `#/gallery` every editor in inline/popover/panel modes.
+
+## Assistant
+
+The Assistant tab talks to an OpenAI-compatible chat-completions server. The gear icon sets the base URL (default `http://localhost:3000/v1`), model, optional API key and streaming; settings persist in localStorage. When the server cannot be reached the pane shows a banner, disables the composer and points at the module tabs, which edit the same document with forms. **Demo mode** swaps in a scripted provider so the full propose → validate → review → apply loop runs offline; try "group by desk then book, pin notional right and sum it".
+
+Every proposal is a JSON Patch validated against the module schemas, the column ids and an engine dry run before it is shown; rows are editable inline with the same editors the forms use, and applied patches land in the store's revision log with the prompt, model and rationale.
 
 Node 22+, npm workspaces, Turborepo, TypeScript 5.9, Vite 8, Vitest 5, AG Grid Enterprise 36, React 19, Tailwind 4.

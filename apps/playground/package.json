@@ -10,11 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@smartgrid/assistant": "0.0.0",
     "@smartgrid/design-system": "0.0.0",
     "@smartgrid/editors": "0.0.0",
     "@smartgrid/engine": "0.0.0",
     "@smartgrid/expressions": "0.0.0",
     "@smartgrid/forms": "0.0.0",
+    "@smartgrid/react": "0.0.0",
     "@smartgrid/schema": "0.0.0",
     "@smartgrid/store": "0.0.0",
     "@smartgrid/ui": "0.0.0",

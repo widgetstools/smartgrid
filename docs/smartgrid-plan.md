@@ -11,7 +11,7 @@
 | Persistence | **`StorageAdapter` interface with IndexedDB default**; memory adapter for tests; REST adapter later | Config document, patch log and profiles all go through one adapter |
 | Design system | **Extract into `packages/design-system` and `packages/ui`**, trimmed to one CSS-variable namespace and one shadcn tier | Copy from stern-bak: tokens, themes, `applyTheme`, AG Grid Quartz adapter + density, cell renderers, 113 icons, 52 shadcn components. Drop `--st/--ds/--bn/--fi/--p/--ck` aliases and the second shadcn copy |
 | Editing components | **Host-agnostic editor library (`packages/editors`) designed first**, one registry used by both the customizer forms and the assistant's generative UI | See [ui-components-plan.md](./ui-components-plan.md): every editor is a controlled component over a schema fragment with `inline`/`popover`/`panel` modes, resolved through an `x-editor` hint |
-| Assistant framework | **assistant-ui** for the chat host + **Vercel AI SDK core** (`@ai-sdk/openai-compatible`) as the model layer + **our own** propose/validate/apply loop. Not CopilotKit for now; the editor contract keeps that swap bounded | Rationale and comparison in [ui-components-plan.md §4](./ui-components-plan.md) |
+| Assistant framework | **Our own** thin layers (revised in M3): a fetch + SSE OpenAI-compatible client in `packages/assistant`, our propose/validate/apply loop, and a chat pane on the shadcn primitives in `packages/react`. assistant-ui and the AI SDK were dropped to keep the surface small and debuggable; the `ModelProvider` and editor contracts keep either swap bounded | Comparison in [ui-components-plan.md §4](./ui-components-plan.md); shipped shape in §5 below |
 
 Open item to confirm when the first call is made: the exact request shape of the local Copilot server (chat-completions path, streaming, tool-call format). The provider adapter isolates this.
 
@@ -111,33 +111,34 @@ Cross-cutting primitives in `packages/schema`: `Scope`, `RowScope`, `Predicate`,
 
 ## 5. The assistant
 
-**Provider contract** (`packages/assistant/src/provider.ts`):
+**Provider contract** (`packages/assistant/src/types.ts`, as shipped in M3):
 ```ts
-interface LlmProvider {
-  health(): Promise<{ ok: boolean; model?: string; latencyMs?: number }>;
-  chat(req: { system: string; messages: Msg[]; tools: ToolDef[]; stream?: boolean }): AsyncIterable<ChatEvent>;
+interface ModelProvider {
+  readonly id: string;
+  health(): Promise<{ ok: boolean; models?: string[]; latencyMs?: number; error?: string }>;
+  chat(req: { model; messages; tools?; temperature?; signal? }, handlers?: { onText?; onToolCall? }): Promise<ChatResult>;
 }
 ```
-`OpenAiCompatibleProvider({ baseUrl: 'http://localhost:3000', model, apiKey? })` first; `AnthropicProvider` second.
+`OpenAiCompatibleProvider({ baseUrl: 'http://localhost:3000/v1', apiKey?, stream? })` speaks chat-completions with SSE streaming and native tool calls (no SDK: one `fetch` + an SSE reader; non-streaming JSON replies are handled too). `MockProvider(script)` runs scripted turns for tests and the offline demo. An Anthropic provider is a follow-up.
 
-**Tools** (all `strict` JSON Schema, generated from Zod):
+**Tools** (JSON Schema per tool; module shapes come from `moduleJsonSchema`):
 
 | Tool | Purpose |
 |---|---|
-| `get_columns` | column ids, headers, `cellDataType`, sample values, distinct counts. Cached; sent once per session |
-| `get_config(module?)` | current slice of the document |
-| `propose_patch(module, ops, rationale)` | returns a patch id and a human-readable diff; **does not apply** |
-| `validate(patchId)` | schema + column existence + expression compile + entitlements; returns positioned errors |
-| `apply(patchId)` | commits, bumps revision, appends to patch log |
-| `undo(n?)` | reverts last n applied patches |
-| `explain(target)` | "why does this cell look like this" — traces styles/formats/flashes/alerts for a cell, or summarises a module |
-| `list_functions` / `list_predicates` | catalogue with signatures and examples, for self-correction |
+| `get_columns` | column ids, headers, `cellDataType`, sample values, calculated/editable flags (the system prompt carries a compact copy) |
+| `get_config(module?)` | one module's data with array indexes, or an overview of object counts |
+| `get_module_schema(module)` | JSON Schema for a module (enums, required keys, `x-editor` hints) |
+| `list_functions(kind?)` / `list_predicates(dataType?)` | catalogue with signatures, for self-correction |
+| `validate_expression(expression, kind)` | positioned errors before the model uses an expression |
+| `propose_patch({module?, title?, rationale, ops})` | validates (schema + column ids + engine dry run) and creates a proposal; **does not apply** |
+| `undo` | reverts the last applied change (any origin) |
+| `explain(columnId)` | which format columns, styled column, flashing, alerts and calculated expression affect a column |
 
-**Loop**: user message → model proposes → validator runs → if errors, feed them back (max 3 self-corrections) → show diff card → user approves (or auto-apply for low-risk modules per setting) → apply. Every applied patch stores `{ patch, prompt, model, timestamp }`.
+**Loop** (`AssistantSession.send`): user message → model streams text / tool calls → tools run locally → results fed back → a valid `propose_patch` ends the turn (the model writes a one-line summary) → the diff card shows it → user edits inline, approves or rejects → `store.apply(patch, { origin: 'assistant', prompt, model, rationale })`. Invalid proposals are fed back with pointers and messages (`maxSelfCorrections`, default 3); `maxSteps` caps tool rounds; `autoApply` is off by default. A proposal is re-validated against the current revision before applying when forms changed the document meanwhile.
 
-**Context discipline**: system prompt (stable) + column schema (cached) + only the module slices the request mentions. Never the whole document.
+**Context discipline**: stable system prompt (document shape, patch rules, module summaries, column list) + tool results only for the modules the request touches. Never the whole document.
 
-**Fallback**: `health()` polled; on failure the pane switches to the config tree with schema-driven forms and a banner. Expression validation and autocomplete remain local.
+**Fallback**: `health()` (`GET /models`) on session creation and on demand; when it fails the pane shows a banner pointing at the module tabs' forms, disables the composer and offers demo mode. Expression validation and autocomplete stay local.
 
 ## 6. Milestones
 
@@ -176,10 +177,11 @@ Each milestone ends with a demo in `apps/playground` and green CI.
 - Queries: column filters and the grid filter from the current layout plus quick search combine into AG Grid's external filter; quick search highlight class; `QUERY('Name')` resolves against the document's named queries.
 - Playground: host adapter (`useGridRuntime`) mirrors runtime events onto the grid API and toasts; the customizer has a generic tab per module driven only by the module's JSON Schema; the seed carries calculated, styled, flashing, alert and query objects.
 
-### M3 — Assistant (week 6–8)
-- `packages/assistant`: AI SDK core + `createOpenAICompatible({ baseURL: 'http://localhost:3000/v1' })` against the local Copilot server, tool set (incl. `request_input` for pickers), agent loop with validator-driven self-correction, patch log, health check.
-- `packages/react`: `<AssistantPane>` on assistant-ui (`LocalRuntime` adapter), tool UIs that mount PatchDiffCard and pickers from the editor registry, approve/undo.
-- **Demo:** "group by desk then book, pin notional right, sum it, flash PnL red when it drops more than 2%" produces and applies a valid multi-module patch; reload restores it.
+### M3 — Assistant (week 6–8) — **done**
+- `packages/assistant` (framework-agnostic): `ModelProvider` contract with `OpenAiCompatibleProvider` (fetch + SSE, native tool calls, non-streaming fallback, `GET /models` health) and `MockProvider` (scripted turns; `demoScript` covers the demo prompts); `validatePatch` (pointer policy → apply on a clone → Zod parse per module → column-id checks with header→id hints → engine dry run so bad expressions and skipped objects become positioned errors); nine tools; compact system prompt; `AssistantSession` loop with streaming deltas, tool execution, self-correction budget, step cap, proposals (`proposed | applied | rejected | invalid | superseded`), inline re-validation, approve/reject/undo through the store with prompt/model/rationale in the patch log.
+- `packages/react`: `useAssistant`/`useAssistantState` (session bound to a store; provider settings → session), `<AssistantPane>` (health banner with forms fallback, transcript with tool chips, proposal cards, composer with suggestions, settings popover: base URL / model / API key / streaming / demo mode). Proposal rows resolve their editor from the module JSON Schema (`resolveProposalEditor`): hinted values get the registry editor inline, whole objects get a generated `SchemaForm` popover, so every proposal is editable before it is applied. Chosen over assistant-ui/AI SDK to keep the surface small and debuggable.
+- Playground: the Assistant tab hosts the real pane; settings persist in localStorage; demo mode runs the whole loop offline.
+- **Demo (verified headless):** "group by desk then book, pin notional right and sum it" reads the layout, proposes a three-op patch and applies it as `rev 1 · assistant`; the grid shows desk/book groups with Notional pinned right and summed; "flash PnL red when it drops more than 2%" proposes a flashing cell; "what columns are there?" answers from tools; "undo that" reverts; reload restores the applied revision; with demo mode off and no server the pane shows the fallback banner. The local Copilot server itself could not be probed from the build environment; the provider is exercised against a fake `fetch` (request shape, SSE parsing, tool-call fragments, health).
 
 ### M4 — Fallback UI completion (week 8–9)
 - Generated forms for every remaining module; composite editors where generated layout needs care (StyledColumnEditor, AlertEditor, LayoutEditor).
@@ -220,3 +222,5 @@ Later: REST adapter + gateway, team sharing, FDC3 intents, interop plugins, serv
 5. Probe the local Copilot server: confirm endpoint path, streaming, and tool-call format, and record it in `packages/assistant/README.md`.
 6. ~~M1: tokenizer/parser/evaluator for AdaptableQL in `packages/expressions`; swap the `ExpressionEditor` textarea for CodeMirror with completions and positioned diagnostics (same props).~~ done
 7. ~~M2: expression rules in the engine, flashing, calculated columns, alerts.~~ done
+8. ~~M3: assistant core, React pane, playground integration.~~ done
+9. M4: composite editors where generated forms need care; round-trip test assistant patch → form → identical document.

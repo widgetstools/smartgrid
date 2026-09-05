@@ -2,8 +2,8 @@
  * Customizer drawer: the fallback UI. Format columns and layouts are edited
  * with the generated forms; every change becomes a JSON Patch applied to the
  * ConfigStore, so the grid updates live and the edit lands in the same
- * revision log the assistant writes to. The "Assistant" tab mocks a proposal
- * card to show the same editors inside a PatchDiffCard.
+ * revision log the assistant writes to. The "Assistant" tab hosts the real
+ * AssistantPane, whose proposals render with the same editors.
  */
 import { useMemo, useState } from 'react';
 import { compare, type Operation } from 'fast-json-patch';
@@ -20,26 +20,17 @@ import {
   type TypedGridConfig,
 } from '@smartgrid/schema';
 import type { ConfigStore } from '@smartgrid/store';
-import {
-  ObjectList,
-  PatchDiffCard,
-  ValidationSummary,
-  defaultEditorRegistry,
-  uid,
-  useEditorContext,
-  type EditorComponent,
-  type PositionedError,
-} from '@smartgrid/editors';
+import { ObjectList, uid, useEditorContext, type PositionedError } from '@smartgrid/editors';
 import {
   FormatColumnForm,
   LayoutForm,
   defaultFormatColumn,
   defaultLayout,
-  type FormatColumnFormProps,
   SchemaForm,
   propertiesOf,
 } from '@smartgrid/forms';
 import { Button, ScrollArea, Tabs, TabsContent } from '@smartgrid/ui';
+import { AssistantTab } from './AssistantTab.js';
 import { ModuleObjectsTab } from './ModuleObjectsTab.js';
 import { useDebouncedDraft } from './useDebouncedDraft.js';
 
@@ -376,82 +367,10 @@ export function Customizer({ store, config, onClose }: CustomizerProps) {
         </TabsContent>
 
         <TabsContent value="assistant" className="m-0 flex min-h-0 flex-1 flex-col">
-          <ScrollArea className="min-h-0 flex-1">
-            <AssistantMock store={store} config={config} />
-          </ScrollArea>
+          <AssistantTab store={store} config={config} />
         </TabsContent>
       </Tabs>
     </aside>
-  );
-}
-
-const FormatColumnRow: EditorComponent<unknown> = (props) => (
-  <div className="w-full min-w-0">
-    <FormatColumnForm
-      {...(props as FormatColumnFormProps)}
-      mode="popover"
-      hiddenKeys={['id', 'readOnly', 'source', 'metadata', 'tags', 'name']}
-    />
-  </div>
-);
-
-/** Stand-in for M3: a canned proposal rendered with the real PatchDiffCard and applied through the store. */
-function AssistantMock({ store, config }: { store: ConfigStore; config: TypedGridConfig }) {
-  const registry = defaultEditorRegistry();
-  const formatColumns = config.modules.formatting?.data.formatColumns ?? [];
-  const proposal = useMemo<Operation[]>(() => {
-    const fresh: FormatColumn = {
-      ...defaultFormatColumn('fc-big-notional', 'Large notional'),
-      scope: { kind: 'columns', columnIds: ['notional'] },
-      rule: {
-        kind: 'predicates',
-        predicates: [{ predicateId: 'GreaterThan', inputs: [50_000_000] }],
-        operator: 'AND',
-      },
-      style: { backColor: { light: '#e6f4ff', dark: '#0b2a4a' }, font: { weight: 'bold' } },
-      source: 'assistant',
-    };
-    return [{ op: 'add', path: `${FC_PATH}/-`, value: fresh }];
-  }, []);
-  const [patch, setPatch] = useState(proposal);
-  const [status, setStatus] = useState<'proposed' | 'applied' | 'rejected'>(
-    formatColumns.some((f) => f.id === 'fc-big-notional') ? 'applied' : 'proposed',
-  );
-  const prompt = 'Highlight trades with notional above 50m';
-  return (
-    <div className="flex flex-col gap-3 p-3">
-      <div className="rounded-lg bg-muted/40 px-3 py-2 text-sm">
-        <span className="text-2xs uppercase tracking-wide text-muted-foreground">You</span>
-        <p>{prompt}</p>
-      </div>
-      <PatchDiffCard
-        patch={patch}
-        before={config}
-        title="Add format column “Large notional”"
-        rationale="Adds a rule on Notional > 50,000,000 with a blue fill and bold text. Tweak the values inline before applying."
-        status={status}
-        registry={registry}
-        describePath={(p) => (p.endsWith('/-') ? 'Formatting › format columns › new' : p)}
-        resolveEditor={(path) =>
-          path.endsWith('/-')
-            ? { hint: 'formatColumn', mode: 'popover', component: FormatColumnRow }
-            : undefined
-        }
-        onEdit={setPatch}
-        onApply={() => {
-          void store
-            .apply(patch, { origin: 'assistant', prompt, model: 'mock', rationale: 'Demo proposal' })
-            .then(() => setStatus('applied'));
-        }}
-        onReject={() => setStatus('rejected')}
-        onUndo={() => void store.undo().then(() => setStatus('proposed'))}
-      />
-      <ValidationSummary
-        warnings={[
-          'This is a canned proposal; M3 wires the local LLM (OpenAI-compatible, port 3000) behind the same card.',
-        ]}
-      />
-    </div>
   );
 }
 
