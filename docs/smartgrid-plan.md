@@ -77,7 +77,7 @@ smartgrid/
   docs/
 ```
 
-Tooling: npm workspaces + Turborepo, TypeScript 5.9, Vite 7, Vitest, Playwright, ESLint flat config, AG Grid Enterprise 35 pinned. Same conventions as stern-bak so contributors move freely.
+Tooling: npm workspaces + Turborepo, TypeScript 5.9, Vite 8, Vitest 5, Playwright, ESLint flat config, AG Grid Enterprise 36 pinned. Same conventions as stern-bak so contributors move freely.
 
 ## 4. The config document
 
@@ -144,7 +144,7 @@ interface LlmProvider {
 Each milestone ends with a demo in `apps/playground` and green CI.
 
 ### M0 — Foundations (week 1–2)
-- Monorepo scaffold, tooling, CI, AG Grid 35 + React 19 pinned.
+- Monorepo scaffold, tooling, CI, AG Grid 36 + React 19 pinned.
 - Extract design system + ui from stern-bak; one token namespace; dark/light parity check.
 - `packages/schema`: cross-cutting primitives + `layout` and `formatting` modules in Zod with JSON Schema export and `x-editor` hints.
 - `packages/store`: `StorageAdapter`, IndexedDB + memory, profile CRUD, patch log.

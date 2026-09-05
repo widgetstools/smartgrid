@@ -12,7 +12,7 @@
 2. **UI tooling is a fallback, not a second product.** When the LLM endpoint is unreachable (or the user prefers it), the same config objects are editable through generic, schema-driven forms. No feature may exist only in the AI path or only in the UI path.
 3. **Lean and mean without losing features.** Every AdapTable feature category in the catalogue is in scope. The bet is that the *tooling* to configure them can be radically smaller than AdapTable's four chrome surfaces and 14 wizards, and smaller than stern-bak's ~49k lines of config UI. The stern-bak survey shows the config UI is 3.3× the engine it drives; SmartGrid inverts that ratio.
 4. **Reuse the existing design system.** Tokens, themes, cell renderers, icons and shadcn primitives come from `stern-bak`'s `@wellsfargo-starui/design-system` and `@wellsfargo-starui/react` packages (or their extracted equivalents). We do not design a new visual language.
-5. **Trading-grade.** React + TypeScript, AG Grid Enterprise 35, dark/light parity, keyboard-first, high-frequency ticking data, CSP-safe expression evaluation, no `eval`.
+5. **Trading-grade.** React + TypeScript, AG Grid Enterprise 36, dark/light parity, keyboard-first, high-frequency ticking data, CSP-safe expression evaluation, no `eval`.
 
 ## Architecture in one paragraph
 

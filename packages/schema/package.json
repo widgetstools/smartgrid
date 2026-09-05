@@ -1,0 +1,31 @@
+{
+  "name": "@smartgrid/schema",
+  "version": "0.0.0",
+  "description": "Zod schemas for the SmartGrid config document, with JSON Schema export and x-editor hints",
+  "type": "module",
+  "license": "UNLICENSED",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rimraf dist && tsc -b",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "rimraf": "6.1.3",
+    "typescript": "5.9.3",
+    "vitest": "5.0.0"
+  }
+}
