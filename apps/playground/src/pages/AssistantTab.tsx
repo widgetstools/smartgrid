@@ -16,14 +16,25 @@ import {
 
 export const ASSISTANT_SETTINGS_KEY = 'smartgrid.assistant.settings';
 
+/**
+ * The playground goes through the Vite proxy (`/llm` → localhost:3000, see
+ * vite.config.ts) so the browser never makes a cross-origin call to the model
+ * server. A full URL in the settings popover still works for servers that
+ * send CORS headers.
+ */
+export const PLAYGROUND_ASSISTANT_SETTINGS: AssistantSettings = {
+  ...DEFAULT_ASSISTANT_SETTINGS,
+  baseUrl: '/llm/v1',
+};
+
 function loadSettings(): AssistantSettings {
   try {
     const raw = localStorage.getItem(ASSISTANT_SETTINGS_KEY);
-    if (raw) return { ...DEFAULT_ASSISTANT_SETTINGS, ...(JSON.parse(raw) as Partial<AssistantSettings>) };
+    if (raw) return { ...PLAYGROUND_ASSISTANT_SETTINGS, ...(JSON.parse(raw) as Partial<AssistantSettings>) };
   } catch {
     // ignore corrupt storage
   }
-  return DEFAULT_ASSISTANT_SETTINGS;
+  return PLAYGROUND_ASSISTANT_SETTINGS;
 }
 
 export function useAssistantSettings(): [AssistantSettings, (next: AssistantSettings) => void] {

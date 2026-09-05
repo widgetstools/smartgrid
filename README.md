@@ -40,7 +40,16 @@ Playground routes: `#/` grid, `#/customizer` grid + customizer drawer (one form-
 
 ## Assistant
 
-The Assistant tab talks to an OpenAI-compatible chat-completions server. The gear icon sets the base URL (default `http://localhost:3000/v1`), model, optional API key and streaming; settings persist in localStorage. When the server cannot be reached the pane shows a banner, disables the composer and points at the module tabs, which edit the same document with forms. **Demo mode** swaps in a scripted provider so the full propose → validate → review → apply loop runs offline; try "group by desk then book, pin notional right and sum it".
+The Assistant tab talks to an OpenAI-compatible chat-completions server. Run it locally against the Copilot API server on port 3000:
+
+```
+npm install
+npm run build                       # workspace packages resolve from dist/
+npm run dev                         # http://localhost:5300/#/customizer → Assistant tab
+SMARTGRID_LLM_URL=http://localhost:4000 npm run dev   # different LLM port
+```
+
+The dev server proxies `/llm/*` to `http://localhost:3000/*`, so the default base URL is `/llm/v1` and the browser never makes a cross-origin request. The gear icon sets the base URL, model (the health check lists what the server offers), optional API key and streaming; settings persist in localStorage. When the server cannot be reached the pane shows a banner, disables the composer and points at the module tabs, which edit the same document with forms. **Demo mode** swaps in a scripted provider so the full propose → validate → review → apply loop runs offline; try "group by desk then book, pin notional right and sum it".
 
 Every proposal is a JSON Patch validated against the module schemas, the column ids and an engine dry run before it is shown; rows are editable inline with the same editors the forms use, and applied patches land in the store's revision log with the prompt, model and rationale.
 
