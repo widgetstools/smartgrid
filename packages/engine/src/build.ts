@@ -18,9 +18,16 @@ import type {
   TypedGridConfig,
 } from '@smartgrid/schema';
 import {
+  compile,
+  createEnv,
   defaultPredicateRegistry,
+  toBoolean,
+  validate,
+  type Env,
   type PredicateContext,
   type PredicateRegistry,
+  type RowContext,
+  type Value,
 } from '@smartgrid/expressions';
 import { buildValueFormatter, type FormatContext, type ValueFormatterFn } from './formatters.js';
 import { buildStylesheet, type StyleRule } from './styles.js';
@@ -34,7 +41,9 @@ export interface BuildInput {
   predicates?: PredicateRegistry;
   predicateContext?: PredicateContext;
   customFormatters?: FormatContext['customFormatters'];
-  /** Emitted for rules the engine cannot evaluate yet (expressions before M1). */
+  /** Expression environment (functions, variables, named queries). Defaults to the system catalogue. */
+  env?: Env;
+  /** Emitted for rules the engine cannot evaluate (invalid expressions, unknown columns). */
   onWarning?: (message: string) => void;
 }
 
@@ -263,11 +272,27 @@ function compileRule(
   ctx: PredicateContext,
   warn: (m: string) => void,
   name: string,
+  env: Env,
+  columns: readonly ColumnInfo[],
 ): CompiledRule | undefined {
   if (!rule) return { test: () => true };
   if (rule.kind === 'expression') {
-    warn(`Format column "${name}": expression rules are evaluated from M1; rule skipped`);
-    return undefined;
+    const v = validate(rule.expression, { kind: 'boolean', env, columns });
+    if (!v.ok) {
+      warn(`Format column "${name}": ${v.errors.map((e) => e.message).join('; ')}; rule skipped`);
+      return undefined;
+    }
+    const fn = compile(v.ast!, env, { resolveColumn: v.resolveColumn });
+    return {
+      test: (_value, rowData) => {
+        const row: RowContext = { get: (id) => rowData?.[id] as Value };
+        try {
+          return toBoolean(fn(row));
+        } catch {
+          return false;
+        }
+      },
+    };
   }
   const preds = rule.predicates;
   const op = rule.operator;
@@ -290,6 +315,7 @@ function applyFormatting(
 ): string {
   const registry = input.predicates ?? defaultPredicateRegistry;
   const ctx = input.predicateContext ?? {};
+  const env = input.env ?? createEnv();
   const active = formatting.formatColumns.filter((fc) => fc.enabled);
 
   // Precedence: earlier in the array wins. CSS cascade makes later rules win,
@@ -301,7 +327,7 @@ function applyFormatting(
   >();
 
   for (const fc of active) {
-    const compiled = compileRule(fc.rule, registry, ctx, warn, fc.name);
+    const compiled = compileRule(fc.rule, registry, ctx, warn, fc.name, env, input.columns);
     if (!compiled) continue;
     const formatter = fc.displayFormat ? buildValueFormatter(fc.displayFormat) : undefined;
     if (fc.style) styleRules.push({ className: FC_CLASS(fc.id), style: fc.style });

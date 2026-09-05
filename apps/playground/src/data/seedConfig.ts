@@ -139,6 +139,21 @@ export function seedConfig(): GridConfig {
       },
     },
     {
+      ...meta('fc-big-loss', 'Big Rates losses (expression)'),
+      scope: { kind: 'columns', columnIds: ['pnl', 'instrument'] },
+      target: 'cell',
+      columnGroupScope: 'both',
+      rule: {
+        kind: 'expression',
+        expression: "[pnl] < -100000 AND [desk] = 'Rates'",
+      },
+      style: {
+        backColor: { light: '#ffe4e6', dark: '#4c0519' },
+        font: { weight: 'bold' },
+        border: { left: { width: 3, style: 'solid', color: 'var(--sg-negative)' } },
+      },
+    },
+    {
       ...meta('fc-cancelled', 'Cancelled rows'),
       scope: { kind: 'all' },
       target: 'cell',

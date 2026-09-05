@@ -55,4 +55,30 @@ describe('ExpressionEditor', () => {
     wrap(<ExpressionEditor value="1" onChange={() => {}} label="When" readOnly />);
     expect(screen.queryByRole('button', { name: 'Insert column' })).not.toBeInTheDocument();
   });
+
+  it('keeps inline mode on a single line: Enter inserts no newline', async () => {
+    const onChange = vi.fn();
+    wrap(<ExpressionEditor value="" onChange={onChange} label="When" mode="inline" />);
+    const box = screen.getByRole('textbox', { name: 'When' });
+    await userEvent.type(box, '[[a]{Enter} > 1');
+    expect(onChange).toHaveBeenLastCalledWith('[a] > 1');
+    expect(box.querySelectorAll('.cm-line')).toHaveLength(1);
+    expect(box.textContent).not.toContain('\n');
+  });
+
+  it('allows newlines in panel mode and mirrors value changes from props', async () => {
+    const onChange = vi.fn();
+    const { rerender } = wrap(<ExpressionEditor value="" onChange={onChange} label="When" />);
+    const box = screen.getByRole('textbox', { name: 'When' });
+    await userEvent.type(box, '1{Enter}2');
+    expect(onChange).toHaveBeenLastCalledWith('1\n2');
+    onChange.mockClear();
+    rerender(
+      <EditorContextProvider value={FIXTURE_CONTEXT}>
+        <ExpressionEditor value="[pnl] > 0" onChange={onChange} label="When" />
+      </EditorContextProvider>,
+    );
+    expect(box).toHaveTextContent('[pnl] > 0');
+    expect(onChange).not.toHaveBeenCalled();
+  });
 });

@@ -5,6 +5,7 @@ AI-first configuration layer for AG Grid Enterprise. An assistant configures the
 - Vision: [docs/smartgrid-vision.md](docs/smartgrid-vision.md)
 - Plan: [docs/smartgrid-plan.md](docs/smartgrid-plan.md)
 - Components: [docs/ui-components-plan.md](docs/ui-components-plan.md)
+- Expression language: [docs/expressions.md](docs/expressions.md)
 - Feature reference: [docs/adaptable-tools-features.md](docs/adaptable-tools-features.md)
 - Parity audit of the prior implementation: [docs/parity-stern-bak-vs-adaptable.md](docs/parity-stern-bak-vs-adaptable.md)
 

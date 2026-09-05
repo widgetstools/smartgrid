@@ -5,7 +5,7 @@
  * revision log the assistant writes to. The "Assistant" tab mocks a proposal
  * card to show the same editors inside a PatchDiffCard.
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { compare, type Operation } from 'fast-json-patch';
 import type { FormatColumn, Layout, TypedGridConfig } from '@smartgrid/schema';
 import type { ConfigStore } from '@smartgrid/store';
@@ -56,6 +56,61 @@ function describeScope(fc: FormatColumn, headerOf: (id: string) => string): stri
   }
 }
 
+/**
+ * Keeps a local draft of an object while the user types and commits one
+ * JSON Patch per pause (default 400 ms) instead of one per keystroke. When
+ * the store echoes our own commit the draft is kept (newer keystrokes may
+ * already be pending); any other store change (undo, assistant, another
+ * editor) discards the draft. Pending edits are flushed on unmount.
+ */
+function useDebouncedDraft<T>(current: T | undefined, commit: (prev: T, next: T) => void, delay = 400) {
+  const [draft, setDraft] = useState<T | undefined>();
+  const [seen, setSeen] = useState(current);
+  const [committed, setCommitted] = useState<string | undefined>(undefined);
+  const [hasPending, setHasPending] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const pending = useRef<{ prev: T; next: T } | undefined>(undefined);
+  if (current !== seen) {
+    setSeen(current);
+    const own = committed !== undefined && JSON.stringify(current) === committed;
+    if (!own || !hasPending) setDraft(undefined);
+    if (!own) setHasPending(false);
+  }
+  // Ref bookkeeping stays out of render: an external change cancels pending edits.
+  useEffect(() => {
+    if (hasPending) return;
+    pending.current = undefined;
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = undefined;
+  }, [hasPending]);
+  const flush = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = undefined;
+    const p = pending.current;
+    pending.current = undefined;
+    setHasPending(false);
+    if (p) {
+      setCommitted(JSON.stringify(p.next));
+      commit(p.prev, p.next);
+    }
+  };
+  const update = (next: T) => {
+    const base = pending.current?.prev ?? (draft !== undefined ? seen : current);
+    if (base === undefined) return;
+    setDraft(next);
+    pending.current = { prev: base, next };
+    setHasPending(true);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(flush, delay);
+  };
+  const flushRef = useRef(flush);
+  useEffect(() => {
+    flushRef.current = flush;
+  });
+  useEffect(() => () => flushRef.current(), []);
+  return [draft ?? current, update, flush] as const;
+}
+
 export function Customizer({ store, config, onClose }: CustomizerProps) {
   const ctx = useEditorContext();
   const headerOf = (id: string) => ctx.columns.find((c) => c.id === id)?.header ?? id;
@@ -73,10 +128,14 @@ export function Customizer({ store, config, onClose }: CustomizerProps) {
     if (ops.length) void store.apply(ops, { origin: 'form' });
   };
 
-  const fc = formatColumns.find((f) => f.id === selectedFc);
-  const fcIndex = formatColumns.findIndex((f) => f.id === selectedFc);
-  const layout = layouts.find((l) => l.id === selectedLayout);
-  const layoutIndex = layouts.findIndex((l) => l.id === selectedLayout);
+  const storedFc = formatColumns.find((f) => f.id === selectedFc);
+  const storedLayout = layouts.find((l) => l.id === selectedLayout);
+  const [fc, updateFc] = useDebouncedDraft<FormatColumn>(storedFc, (prev, next) =>
+    applyList(`${FC_PATH}/${formatColumns.indexOf(prev)}`, prev, next),
+  );
+  const [layout, updateLayout] = useDebouncedDraft<Layout>(storedLayout, (prev, next) =>
+    applyList(`${LAYOUTS_PATH}/${layouts.indexOf(prev)}`, prev, next),
+  );
 
   return (
     <aside
@@ -124,7 +183,7 @@ export function Customizer({ store, config, onClose }: CustomizerProps) {
                 <div className="rounded-md border border-border p-2" key={fc.id}>
                   <FormatColumnForm
                     value={fc}
-                    onChange={(next) => next && applyList(`${FC_PATH}/${fcIndex}`, fc, next)}
+                    onChange={(next) => next && updateFc(next)}
                     onValidate={setFcErrors}
                     label={fc.name}
                     showSummary
@@ -183,9 +242,7 @@ export function Customizer({ store, config, onClose }: CustomizerProps) {
                   )}
                   <LayoutForm
                     value={layout}
-                    onChange={(next) =>
-                      next && applyList(`${LAYOUTS_PATH}/${layoutIndex}`, layout, next as Layout)
-                    }
+                    onChange={(next) => next && updateLayout(next as Layout)}
                     label={layout.name}
                     showSummary
                   />

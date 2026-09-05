@@ -182,11 +182,28 @@ describe('buildGrid formatting', () => {
     expect(vf({ value: null, data: {}, node: {} as never })).toBe('');
   });
 
-  it('warns and skips expression rules until M1', () => {
+  it('evaluates boolean expression rules against the row, resolving friendly names', () => {
     const cfg = config();
-    cfg.modules.formatting!.data.formatColumns[0]!.rule = { kind: 'expression', expression: '[pnl] < 0' };
+    cfg.modules.formatting!.data.formatColumns[0]!.rule = {
+      kind: 'expression',
+      expression: "[PnL] < 0 AND [Desk] = 'rates'",
+    };
     const out = buildGrid({ config: cfg, baseColumnDefs: baseDefs, columns });
-    expect(out.warnings[0]).toMatch(/expression rules/);
+    expect(out.warnings).toEqual([]);
+    const pnl = (out.columnDefs as ColDef[]).find((d) => d.field === 'pnl')!;
+    const rule = pnl.cellClassRules!['sg-fc-neg'] as (p: Partial<CellClassParams>) => boolean;
+    expect(rule({ value: -5, data: { pnl: -5, desk: 'Rates' }, node: {} as never })).toBe(true);
+    expect(rule({ value: -5, data: { pnl: -5, desk: 'Credit' }, node: {} as never })).toBe(false);
+    expect(rule({ value: 5, data: { pnl: 5, desk: 'Rates' }, node: {} as never })).toBe(false);
+  });
+
+  it('warns and skips invalid expression rules', () => {
+    const cfg = config();
+    cfg.modules.formatting!.data.formatColumns[0]!.rule = { kind: 'expression', expression: '[nope] < ' };
+    const out = buildGrid({ config: cfg, baseColumnDefs: baseDefs, columns });
+    expect(out.warnings[0]).toMatch(/Unexpected end of expression; rule skipped/);
+    const pnl = (out.columnDefs as ColDef[]).find((d) => d.field === 'pnl')!;
+    expect(pnl.cellClassRules?.['sg-fc-neg']).toBeUndefined();
   });
 });
 

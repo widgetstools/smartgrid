@@ -156,11 +156,15 @@ Each milestone ends with a demo in `apps/playground` and green CI.
 - Playground: `#/gallery` (every editor × three modes, light/dark split), `#/customizer` (drawer: format columns and layouts edited through the generated forms; each change is a `fast-json-patch` diff applied to the `ConfigStore`, so the grid restyles live and the change survives reload), and an Assistant tab with a canned proposal rendered by the real `PatchDiffCard` and applied through the same store.
 - Verified headless: gallery renders all 27 hints; renaming and recolouring a format column bumps the revision, rewrites the injected stylesheet, and persists across reload; the mock proposal applies as origin `assistant`.
 
-### M1 — Expression language (week 3–4)
-- `packages/expressions`: AdaptableQL grammar, scalar + boolean functions (full catalogue), predicates (all 45), positioned diagnostics, AST, compile-to-closure, parse cache.
-- Aggregation tier with `GROUP_BY`/`WHERE`/`WEIGHT`; relative-change tier; observable tier on a time-window engine.
-- Conformance suite: every example in the AdapTable docs parses and evaluates.
-- **Demo:** expression editor with palettes, diagnostics, row preview.
+### M1 — Expression language (week 3–4) — **done**
+- `packages/expressions`: tokenizer, recursive-descent parser with spans and a parse cache, AST printer, value semantics shared with predicates (blank propagation, `'5M'` magnitude strings, dates, case-insensitive text), closure compiler, `MapFunctionRegistry`, `createEnv`. Reference: [docs/expressions.md](expressions.md).
+- Function catalogue (70 system functions): boolean, numeric, date, string, misc, relative change (`ANY_CHANGE`, `ABSOLUTE_CHANGE`, `PERCENT_CHANGE`), advanced (`VAR`, `QUERY`, `IF`), aggregated metadata, observable metadata.
+- Aggregated tier: `SUM AVG MIN MAX MEDIAN COUNT MODE DISTINCT ONLY STD_DEVIATION PERCENTAGE` with `GROUP_BY`, `WEIGHT`, trailing `WHERE`; `CUMUL(…, OVER([col]))`; `QUANT`/`QUARTILE`/`PERCENTILE`; per-row (`evaluateRow`) and per-group (`evaluate`) entry points with per-session caches.
+- Observable tier: `ROW_CHANGE`/`GRID_CHANGE` with `COUNT`/`MIN`/`MAX`/`NONE`, `ROW_ADDED`/`ROW_REMOVED`, `TIMEFRAME` (8h default cap, 24h hard cap), `WHERE`; `ObservableWatcher` is a clock-agnostic sliding-window runtime (`push(event)`, `tick(now)`).
+- `validate(src, { kind, env, columns })`: friendly-name resolution, unknown column/function (with did-you-mean), arity, kind rules (aggregates only in aggregated kinds, observable shape), return-type inference, positioned errors. 115 tests including a conformance suite over the AdapTable doc examples.
+- Editor: `ExpressionEditor` is CodeMirror 6 behind the unchanged props — syntax highlighting on design tokens, column/function/keyword completions filtered by kind, live lint from `validate`, host errors merged as diagnostics, single-line inline mode. `EditorContext.functions` defaults to the system catalogue.
+- Engine: boolean expression rules compile to closures in `cellClassRules`; invalid expressions warn and are skipped. Playground seed carries an expression-driven format column.
+- Not done: relative-change functions only see a change when the host sets `RowContext.change` (engine wiring lands with flashing/alerts in M2); infix `[col] IN ('a','b')` is not parsed (use `IN([col], 'a', 'b')`).
 
 ### M2 — Engine core (week 4–6)
 - `packages/engine`: `Module` contract (from stern-bak, kept), pipeline, `RowChangeBus`, validator.
@@ -209,5 +213,5 @@ Later: REST adapter + gateway, team sharing, FDC3 intents, interop plugins, serv
 3. ~~Write `packages/schema` primitives + `layout` + `formatting` schemas with `x-editor` hints and tests.~~ done
 4. ~~Build `packages/editors` atoms + registry + gallery page (M0.5).~~ done, with `packages/forms` and the customizer drawer
 5. Probe the local Copilot server: confirm endpoint path, streaming, and tool-call format, and record it in `packages/assistant/README.md`.
-6. M1: tokenizer/parser/evaluator for AdaptableQL in `packages/expressions`; swap the `ExpressionEditor` textarea for CodeMirror with completions and positioned diagnostics (same props).
+6. ~~M1: tokenizer/parser/evaluator for AdaptableQL in `packages/expressions`; swap the `ExpressionEditor` textarea for CodeMirror with completions and positioned diagnostics (same props).~~ done
 7. M2: expression rules in the engine (currently skipped with a warning), flashing, calculated columns, alerts.

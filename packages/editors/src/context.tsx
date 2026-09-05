@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { PREDICATE_ARITY, PREDICATE_IDS, predicatesForDataType, type CellDataType } from '@smartgrid/schema';
-import type { EditorContext, PredicateInfo } from './types.js';
+import { defaultFunctionRegistry, type FunctionRegistry } from '@smartgrid/expressions';
+import type { EditorContext, FunctionInfo, PredicateInfo } from './types.js';
 
 const Ctx = createContext<EditorContext | null>(null);
 
@@ -32,11 +33,26 @@ export function predicatesFor(dataType: CellDataType, all: readonly PredicateInf
   return all.filter((p) => (p.dataTypes ? p.dataTypes.includes(dataType) : allowed.has(p.id)));
 }
 
+/** Project a function registry onto the palette/completion shape (first signature, description). */
+export function functionInfosFromRegistry(registry: FunctionRegistry): FunctionInfo[] {
+  return registry.list().map((d) => ({
+    name: d.name,
+    category: d.category,
+    signature: d.signatures[0] ?? `${d.name}()`,
+    description: d.description,
+    kinds: d.kinds,
+  }));
+}
+
+/** System function catalogue as FunctionInfo, for hosts without a custom list. */
+export const SYSTEM_FUNCTION_INFO: readonly FunctionInfo[] =
+  functionInfosFromRegistry(defaultFunctionRegistry());
+
 export const EMPTY_EDITOR_CONTEXT: EditorContext = {
   columns: [],
   sampleRows: [],
   theme: 'light',
-  functions: [],
+  functions: SYSTEM_FUNCTION_INFO,
   predicates: SYSTEM_PREDICATE_INFO,
   icons: [],
   colorTokens: DEFAULT_COLOR_TOKENS,
