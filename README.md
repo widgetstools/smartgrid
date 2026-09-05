@@ -32,7 +32,9 @@ packages/
 npm install
 npm run build
 npm run test
-npm run dev        # playground
+npm run dev        # playground on http://localhost:5300
 ```
+
+Playground routes: `#/` grid, `#/customizer` grid + form-driven customizer drawer (format columns, layouts, mock assistant proposal), `#/gallery` every editor in inline/popover/panel modes.
 
 Node 22+, npm workspaces, Turborepo, TypeScript 5.9, Vite 8, Vitest 5, AG Grid Enterprise 36, React 19, Tailwind 4.

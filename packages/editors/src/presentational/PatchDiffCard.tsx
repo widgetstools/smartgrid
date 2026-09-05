@@ -13,7 +13,7 @@ import type { Operation } from 'fast-json-patch';
 import type { EditorHint } from '@smartgrid/schema';
 import { Badge, Button, cn } from '@smartgrid/ui';
 import type { EditorRegistry } from '../registry.js';
-import type { PositionedError } from '../types.js';
+import type { EditorComponent, EditorMode, PositionedError } from '../types.js';
 import { ValidationSummary } from './ValidationSummary.js';
 
 export type PatchStatus = 'proposed' | 'applied' | 'rejected' | 'invalid';
@@ -23,6 +23,10 @@ export interface ResolvedEditor {
   options?: Record<string, unknown>;
   jsonSchema?: Record<string, unknown>;
   label?: string;
+  /** Explicit component (e.g. a generated form) instead of the registry lookup. */
+  component?: EditorComponent<unknown>;
+  /** Mode for the row editor; defaults to inline. */
+  mode?: EditorMode;
 }
 
 export interface PatchDiffCardProps {
@@ -167,7 +171,7 @@ export function PatchDiffCard({
       <ul className="flex flex-col gap-1">
         {rows.map(({ op, i, prev, next, resolved, rowErrors }) => {
           const meta = OP_META[op.op];
-          const Editor = resolved && registry?.component(resolved.hint);
+          const Editor = resolved && (resolved.component ?? registry?.component(resolved.hint));
           return (
             <li
               key={i}
@@ -209,7 +213,7 @@ export function PatchDiffCard({
                       <Editor
                         value={next}
                         onChange={(v) => setValue(i, v)}
-                        mode="inline"
+                        mode={resolved.mode ?? 'inline'}
                         options={resolved.options}
                         jsonSchema={resolved.jsonSchema}
                         errors={rowErrors}

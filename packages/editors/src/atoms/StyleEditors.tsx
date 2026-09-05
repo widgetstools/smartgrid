@@ -118,9 +118,10 @@ export function BorderEditor({
         <ThemeColorPicker
           value={current?.color}
           onChange={(c) => apply({ color: c })}
-          mode={pickerMode(mode)}
+          mode={mode}
           readOnly={ro}
           label="Border colour"
+          options={{ bare: true }}
         />
         {mode !== 'inline' && (
           <NumberInput

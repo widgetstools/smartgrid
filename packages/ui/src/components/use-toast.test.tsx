@@ -129,8 +129,6 @@ describe('useToast', () => {
     const { useToast, toast } = await import('./use-toast.js');
     const { result } = renderHook(() => useToast());
 
-
-
     act(() => {
       toast({ title: 'Callback test' });
     });
@@ -159,13 +157,13 @@ describe('useToast', () => {
     const { useToast, toast } = await import('./use-toast.js');
     const { result } = renderHook(() => useToast());
 
-    let toastResult: any;
+    let toastResult: ReturnType<typeof toast> | undefined;
     act(() => {
       toastResult = toast({ title: 'Original' });
     });
 
     act(() => {
-      toastResult.update({ id: toastResult.id, title: 'Updated' });
+      toastResult!.update({ id: toastResult!.id, title: 'Updated' });
     });
 
     expect(result.current.toasts[0]?.title).toBe('Updated');

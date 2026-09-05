@@ -143,18 +143,18 @@ interface LlmProvider {
 
 Each milestone ends with a demo in `apps/playground` and green CI.
 
-### M0 — Foundations (week 1–2)
+### M0 — Foundations (week 1–2) — **done**
 - Monorepo scaffold, tooling, CI, AG Grid 36 + React 19 pinned.
 - Extract design system + ui from stern-bak; one token namespace; dark/light parity check.
 - `packages/schema`: cross-cutting primitives + `layout` and `formatting` modules in Zod with JSON Schema export and `x-editor` hints.
 - `packages/store`: `StorageAdapter`, IndexedDB + memory, profile CRUD, patch log.
 - **Demo:** blotter renders from a persisted config document; reload restores it.
 
-### M0.5 — Editors (week 2–3)
-- `packages/editors`: registry + atoms (ColorPicker, BorderEditor, FontStyleEditor, AlignmentPicker, StyleEditor, DisplayFormatEditor, ColumnPicker, ScopePicker, RowScopePicker, PredicateEditor, RuleEditor, IconPicker, ImagePicker, ScheduleEditor, KeyBindingEditor, DurationField) + PatchDiffCard + PreviewCell + ObjectList.
-- `packages/forms`: JSON-Schema-driven renderer resolving editors from the registry; generated FormatColumn and Layout forms.
-- Editor gallery page in the playground showing every editor in `inline`, `popover` and `panel` modes, dark and light.
-- **Demo:** configure a format column through the generated form; the same editors appear inside a mock PatchDiffCard.
+### M0.5 — Editors (week 2–3) — **done**
+- `packages/editors`: `EditorProps`/`EditorContext` contract, `EditorRegistry`, `registerDefaultEditors` covering every leaf `x-editor` hint (27 atoms: colour, theme colour, border, font, alignment, style, display format, expression, predicate, rule, scope, row scope, column(s), column type, icon, image, number, range, schedule, keys, duration, values, density, text, boolean, enum). Presentational: `PreviewCell` (uses the engine's formatter and style helpers), `PatchDiffCard` (per-op inline editors, apply/reject/undo), `ObjectList`, `ValidationSummary`. 115 tests.
+- `packages/forms`: `SchemaForm` renders any JSON Schema node — `x-editor` → registry, objects → fieldsets, discriminated unions → kind selector + branch, string arrays → chips, object arrays → `ObjectList` + detail, records → key/value rows, Zod validation routed to fields by JSON pointer. Generated `FormatColumnForm` and `LayoutForm` (rule/display-format options follow the scope). Composite hints (`formatColumn`, `layout`, …) are structural: rendered by the form, never by an atom.
+- Playground: `#/gallery` (every editor × three modes, light/dark split), `#/customizer` (drawer: format columns and layouts edited through the generated forms; each change is a `fast-json-patch` diff applied to the `ConfigStore`, so the grid restyles live and the change survives reload), and an Assistant tab with a canned proposal rendered by the real `PatchDiffCard` and applied through the same store.
+- Verified headless: gallery renders all 27 hints; renaming and recolouring a format column bumps the revision, rewrites the injected stylesheet, and persists across reload; the mock proposal applies as origin `assistant`.
 
 ### M1 — Expression language (week 3–4)
 - `packages/expressions`: AdaptableQL grammar, scalar + boolean functions (full catalogue), predicates (all 45), positioned diagnostics, AST, compile-to-closure, parse cache.
@@ -204,8 +204,10 @@ Later: REST adapter + gateway, team sharing, FDC3 intents, interop plugins, serv
 
 ## 9. Immediate next steps
 
-1. Scaffold the monorepo (M0 tooling) and push.
-2. Extract design system + ui packages from stern-bak.
-3. Write `packages/schema` primitives + `layout` + `formatting` schemas with `x-editor` hints and tests.
-4. Build `packages/editors` atoms + registry + gallery page (M0.5).
+1. ~~Scaffold the monorepo (M0 tooling) and push.~~ done
+2. ~~Extract design system + ui packages from stern-bak.~~ done
+3. ~~Write `packages/schema` primitives + `layout` + `formatting` schemas with `x-editor` hints and tests.~~ done
+4. ~~Build `packages/editors` atoms + registry + gallery page (M0.5).~~ done, with `packages/forms` and the customizer drawer
 5. Probe the local Copilot server: confirm endpoint path, streaming, and tool-call format, and record it in `packages/assistant/README.md`.
+6. M1: tokenizer/parser/evaluator for AdaptableQL in `packages/expressions`; swap the `ExpressionEditor` textarea for CodeMirror with completions and positioned diagnostics (same props).
+7. M2: expression rules in the engine (currently skipped with a warning), flashing, calculated columns, alerts.

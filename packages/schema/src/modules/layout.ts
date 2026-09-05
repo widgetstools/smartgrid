@@ -3,6 +3,7 @@ import { withEditor } from '../meta.js';
 import { ObjectMeta } from '../primitives/common.js';
 import { BooleanExpression } from '../primitives/expression.js';
 import { Predicate } from '../primitives/predicate.js';
+import { ColumnId, ColumnIds } from '../primitives/column.js';
 
 // ---------------------------------------------------------------------------
 // Column-level layout properties
@@ -22,7 +23,7 @@ export const ColumnSizing = z
 export type ColumnSizing = z.infer<typeof ColumnSizing>;
 
 export const SortOrder = z.enum(['asc', 'desc']);
-export const ColumnSort = z.object({ columnId: z.string().min(1), order: SortOrder });
+export const ColumnSort = z.object({ columnId: ColumnId, order: SortOrder });
 export type ColumnSort = z.infer<typeof ColumnSort>;
 
 export const Pin = z.enum(['left', 'right']);
@@ -30,7 +31,7 @@ export const Pin = z.enum(['left', 'right']);
 /** Per-layout column filter. Stored in the layout, as in AdapTable. */
 export const ColumnFilter = withEditor(
   z.object({
-    columnId: z.string().min(1),
+    columnId: ColumnId,
     predicates: z.array(Predicate).min(1),
     operator: z.enum(['AND', 'OR']).default('AND'),
     enabled: z.boolean().default(true),
@@ -72,12 +73,12 @@ export type ColumnGroupExpansion = z.infer<typeof ColumnGroupExpansion>;
 
 export const AggregationFunction = z.union([
   z.enum(['sum', 'avg', 'min', 'max', 'count', 'first', 'last', 'only']),
-  z.object({ kind: z.literal('weightedAverage'), weightColumnId: z.string().min(1) }),
+  z.object({ kind: z.literal('weightedAverage'), weightColumnId: ColumnId }),
   z.object({ kind: z.literal('custom'), name: z.string().min(1) }).describe('Host-registered aggregation'),
 ]);
 export type AggregationFunction = z.infer<typeof AggregationFunction>;
 
-export const ColumnAggregation = z.object({ columnId: z.string().min(1), aggFunc: AggregationFunction });
+export const ColumnAggregation = z.object({ columnId: ColumnId, aggFunc: AggregationFunction });
 export type ColumnAggregation = z.infer<typeof ColumnAggregation>;
 
 export const SummaryFunction = z.enum([
@@ -99,7 +100,7 @@ export const RowSummary = z.object({
   id: z.string().min(1),
   position: z.enum(['top', 'bottom']),
   columns: z.record(z.string(), SummaryFunction),
-  weightColumnId: z.string().optional().describe('Used by weightedAverage'),
+  weightColumnId: ColumnId.optional().describe('Used by weightedAverage'),
   includeOnlyFilteredRows: z.boolean().default(true),
   enabled: z.boolean().default(true),
 });
@@ -151,9 +152,9 @@ const LayoutBase = ObjectMeta.extend({
 
 export const TableLayout = LayoutBase.extend({
   kind: z.literal('table'),
-  columns: z.array(z.string().min(1)).describe('Column ids in display order; omitted columns are hidden'),
-  hiddenColumns: z.array(z.string().min(1)).default([]).describe('Columns kept in order but not shown'),
-  rowGroupColumns: z.array(z.string().min(1)).default([]),
+  columns: ColumnIds.describe('Column ids in display order; omitted columns are hidden'),
+  hiddenColumns: ColumnIds.default([]).describe('Columns kept in order but not shown'),
+  rowGroupColumns: ColumnIds.default([]),
   aggregations: z.array(ColumnAggregation).default([]),
   rowSummaries: z.array(RowSummary).default([]),
 });
@@ -162,7 +163,7 @@ export type TableLayout = z.infer<typeof TableLayout>;
 export const PivotTotalPosition = z.enum(['none', 'before', 'after']);
 
 export const PivotAggregation = z.object({
-  columnId: z.string().min(1),
+  columnId: ColumnId,
   aggFunc: AggregationFunction,
   total: z
     .union([
@@ -174,8 +175,8 @@ export const PivotAggregation = z.object({
 
 export const PivotLayout = LayoutBase.extend({
   kind: z.literal('pivot'),
-  pivotColumns: z.array(z.string().min(1)).describe('Columns whose values become result column groups'),
-  rowGroupColumns: z.array(z.string().min(1)).default([]),
+  pivotColumns: ColumnIds.describe('Columns whose values become result column groups'),
+  rowGroupColumns: ColumnIds.default([]),
   aggregations: z.array(PivotAggregation).default([]),
   grandTotal: PivotTotalPosition.default('none'),
   columnTotal: PivotTotalPosition.default('none'),

@@ -26,7 +26,7 @@ import {
 import { useEditorContext } from '../context.js';
 import { Field } from '../lib/Field.js';
 import { controlSize } from '../lib/inputs.js';
-import type { EditorProps } from '../types.js';
+import type { EditorMode, EditorProps, PositionedError } from '../types.js';
 
 const COLOR_RE =
   /^(#[0-9a-fA-F]{3,8}|(rgb|rgba|hsl|hsla|oklch|oklab|color)\(.+\)|var\(--[a-zA-Z0-9-]+\)|[a-zA-Z]+)$/;
@@ -95,10 +95,14 @@ export function ColorPicker({
   id,
   className,
   autoFocus,
+  options,
 }: EditorProps<Color>) {
   const ctx = useEditorContext();
   const autoId = useId();
   const inputId = id ?? autoId;
+  /** `bare`: no Field chrome (nested inside another editor); `prefix`: text shown before the value. */
+  const bare = options?.['bare'] === true;
+  const prefix = typeof options?.['prefix'] === 'string' ? options['prefix'] : undefined;
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(value ?? '');
   const [lastValue, setLastValue] = useState(value);
@@ -115,8 +119,9 @@ export function ColorPicker({
     setOpen(false);
   };
 
+  const Wrapper = bare ? BareField : Field;
   return (
-    <Field
+    <Wrapper
       id={inputId}
       label={label}
       description={description}
@@ -145,7 +150,12 @@ export function ColorPicker({
               }
             >
               <ColorSwatch color={value} decorative />
-              {mode !== 'inline' && <span className="truncate text-xs">{tokenLabel ?? value ?? 'None'}</span>}
+              {mode !== 'inline' && (
+                <span className="truncate text-xs">
+                  {prefix && <span className="text-muted-foreground">{prefix} · </span>}
+                  {tokenLabel ?? value ?? 'None'}
+                </span>
+              )}
             </Button>
           </PopoverTrigger>
           {value && !readOnly && mode !== 'inline' && (
@@ -255,8 +265,24 @@ export function ColorPicker({
           </Tabs>
         </PopoverContent>
       </Popover>
-    </Field>
+    </Wrapper>
   );
+}
+
+/** Stand-in for Field when an editor is nested inside another editor's chrome. */
+function BareField({
+  children,
+  className,
+}: {
+  id?: string;
+  label?: string;
+  description?: string;
+  mode?: EditorMode;
+  errors?: readonly PositionedError[];
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return <div className={cn('flex min-w-0 items-center gap-1', className)}>{children}</div>;
 }
 
 export function ThemeColorPicker(props: EditorProps<ThemeColor>) {
@@ -271,10 +297,14 @@ export function ThemeColorPicker(props: EditorProps<ThemeColor>) {
     errors,
     id,
     className,
+    options,
   } = props;
   const paired = typeof value === 'object' && value !== null;
   const light = paired ? value.light : value;
   const dark = paired ? value.dark : value;
+  const bare = options?.['bare'] === true;
+  const sub = mode === 'panel' ? 'popover' : mode;
+  const Wrapper = bare ? BareField : Field;
 
   const setPaired = (p: boolean) => {
     if (p) onChange({ light: light ?? '#000000', dark: dark ?? '#ffffff' });
@@ -282,34 +312,44 @@ export function ThemeColorPicker(props: EditorProps<ThemeColor>) {
   };
 
   return (
-    <Field id={id} label={label} description={description} mode={mode} errors={errors} className={className}>
+    <Wrapper
+      id={id}
+      label={label}
+      description={description}
+      mode={mode}
+      errors={errors}
+      className={className}
+    >
       <div className="flex flex-wrap items-center gap-2">
         {!paired ? (
           <ColorPicker
             value={light}
             onChange={(c) => onChange(c)}
-            mode={mode === 'panel' ? 'popover' : mode}
+            mode={sub}
             readOnly={readOnly}
             disabled={disabled}
-            label={label ? `${label} colour` : 'Colour'}
+            label={label ?? 'Colour'}
+            options={{ bare: true }}
           />
         ) : (
           <>
             <ColorPicker
               value={light}
               onChange={(c) => onChange({ light: c ?? '#000000', dark: dark ?? '#ffffff' })}
-              mode={mode === 'panel' ? 'popover' : mode}
+              mode={sub}
               readOnly={readOnly}
               disabled={disabled}
-              label="Light"
+              label={`${label ?? 'Colour'} (light)`}
+              options={{ bare: true, prefix: 'Light' }}
             />
             <ColorPicker
               value={dark}
               onChange={(c) => onChange({ light: light ?? '#000000', dark: c ?? '#ffffff' })}
-              mode={mode === 'panel' ? 'popover' : mode}
+              mode={sub}
               readOnly={readOnly}
               disabled={disabled}
-              label="Dark"
+              label={`${label ?? 'Colour'} (dark)`}
+              options={{ bare: true, prefix: 'Dark' }}
             />
           </>
         )}
@@ -324,6 +364,6 @@ export function ThemeColorPicker(props: EditorProps<ThemeColor>) {
           </button>
         )}
       </div>
-    </Field>
+    </Wrapper>
   );
 }

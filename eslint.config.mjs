@@ -6,7 +6,8 @@
 //   expressions, store                      -> foundation + schema
 //   editors                                 -> foundation + schema + expressions
 //   engine                                  -> schema + expressions + store (never React packages)
-//   forms, assistant, react                 -> anything below them
+//   forms                                   -> editors + everything editors may use
+//   assistant, react                        -> anything below them
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
@@ -22,6 +23,7 @@ const FOUNDATION = [
 const MID = ['packages/expressions/**/*.{ts,tsx}', 'packages/store/**/*.{ts,tsx}'];
 const EDITORS = ['packages/editors/**/*.{ts,tsx}'];
 const ENGINE = ['packages/engine/**/*.{ts,tsx}'];
+const FORMS = ['packages/forms/**/*.{ts,tsx}'];
 
 export default tseslint.config(
   {
@@ -86,6 +88,22 @@ export default tseslint.config(
         ],
         message:
           'editors may import schema, expressions, engine (pure helpers), design-system and ui only; never assistant, store or AG Grid.',
+      }),
+    },
+  },
+  {
+    files: FORMS,
+    rules: {
+      'no-restricted-imports': restrict({
+        group: [
+          '@smartgrid/!(schema|expressions|engine|editors|design-system|ui)',
+          '@smartgrid/!(schema|expressions|engine|editors|design-system|ui)/**',
+          'ag-grid-community',
+          'ag-grid-enterprise',
+          'ag-grid-react',
+        ],
+        message:
+          'forms may import schema, expressions, engine, editors, design-system and ui only; never store, assistant or AG Grid.',
       }),
     },
   },
