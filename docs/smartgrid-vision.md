@@ -62,9 +62,9 @@ Derived one-to-one from the feature catalogue. Each is a tool or tool family wit
 - Everything the assistant can produce is round-trippable through the forms, because both are generated from the same schemas.
 - Offline expression validation and autocomplete still work (local compiler, function catalogue).
 
-## Open decisions (to be resolved as work starts)
+## Decisions (resolved, see [smartgrid-plan.md](./smartgrid-plan.md))
 
-- LLM provider abstraction: which providers, streaming, tool-call format, on-prem endpoint support.
-- Expression language: adopt AdaptableQL syntax verbatim (`[col]`, `SUM(...) WHERE ...`) or keep stern-bak's DSL and add the aggregated/observable/relative-change families.
-- Where the config document persists (localStorage / IndexedDB / REST) and how team sharing works.
-- Whether to extract the design system from `stern-bak` into `packages/design-system` here, or depend on it as a published package.
+- **Expression language:** AdaptableQL-compatible grammar and function catalogue, including the aggregation, relative-change and observable tiers.
+- **LLM access:** local Copilot API server on `localhost:3000` through an OpenAI-compatible provider adapter; providers are swappable.
+- **Persistence:** `StorageAdapter` interface with IndexedDB default and a memory adapter; REST adapter later.
+- **Design system:** extracted from `stern-bak` into `packages/design-system` and `packages/ui`, trimmed to one token namespace and one shadcn tier.
